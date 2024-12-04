@@ -7,6 +7,7 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AuthForm.css";
+import { useNavigate, useNavigation } from "react-router-dom";
 
 const AuthPage = () => {
   const [isSignup, setIsSignup] = useState(false);
@@ -14,6 +15,7 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
   const toggleForm = () => setIsSignup((prev) => !prev);
 
@@ -23,9 +25,11 @@ const AuthPage = () => {
     try {
       if (isSignup) {
         await createUserWithEmailAndPassword(auth, email, password);
+        navigate('/dashboard')
         toast.success("Signup successful!");
       } else {
         await signInWithEmailAndPassword(auth, email, password);
+        navigate('/dashboard')
         toast.success("Login successful!");
       }
     } catch (error) {
@@ -43,7 +47,7 @@ const AuthPage = () => {
     <div className="auth-container">
       <ToastContainer />
       <div className="auth-left">
-        <h1>Welcome to TrafficAI</h1>
+        <h1>Welcome to TraffiX</h1>
         <p>Analyze and predict traffic patterns with the power of AI.</p>
       </div>
       <div className="auth-right">

@@ -18,7 +18,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import axios from "axios";
-import { Place, Flag } from "@mui/icons-material"; // Importing icons
+// import { Place, Flag } from "@mui/icons-material"; // Importing icons
 const containerStyle = {
   width: "100%",
   height: "600px",
@@ -348,7 +348,7 @@ const RoutePlanner = () => {
                 alignItems: "center",
               }}
             >
-              <Place style={{ fontSize: "40px", color: "#1976d2" }} />
+              {/* <Place style={{ fontSize: "40px", color: "#1976d2" }} /> */}
               {/* Start Icon */}
               <Typography variant="subtitle1" style={{ fontWeight: "bold" }}>
                 {startPointAddress}
@@ -376,7 +376,7 @@ const RoutePlanner = () => {
                 alignItems: "center",
               }}
             >
-              <Flag style={{ fontSize: "40px", color: "#43a047" }} />
+              {/* <Flag style={{ fontSize: "40px", color: "#43a047" }} /> */}
               {/* End Icon */}
               <Typography variant="subtitle1" style={{ fontWeight: "bold" }}>
                 {endPointAddress}

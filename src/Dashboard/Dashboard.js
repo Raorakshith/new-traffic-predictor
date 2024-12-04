@@ -243,6 +243,7 @@ import TrafficIcon from "@mui/icons-material/Traffic";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArticleIcon from "@mui/icons-material/Article";
 import { styled } from "@mui/system";
+import { useNavigate } from "react-router-dom";
 
 const DrawerContent = styled(Box)({
   width: 250,
@@ -301,7 +302,7 @@ const Dashboard = () => {
   const [weather, setWeather] = useState(null);
   const [traffic, setTraffic] = useState(null);
   const [news, setNews] = useState([]);
-
+  const navigate = useNavigate();
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
       const { latitude, longitude } = position.coords;
@@ -366,13 +367,19 @@ const Dashboard = () => {
           <Typography variant="h6">Navigation</Typography>
           <List>
             <ListItem button>
-              <ListItemText primary="Dashboard" />
+              <ListItemText primary="Dashboard" onClick={()=>{
+                navigate('/dashboard')
+              }}/>
             </ListItem>
             <ListItem button>
-              <ListItemText primary="Reports" />
+              <ListItemText primary="Route Plan" onClick={()=>{
+                navigate('/route-plan')
+              }}/>
             </ListItem>
             <ListItem button>
-              <ListItemText primary="Settings" />
+              <ListItemText primary="Settings" onClick={()=>{
+                navigate('/block-map')
+              }} />
             </ListItem>
           </List>
         </DrawerContent>

@@ -1,0 +1,112 @@
+.auth-container {
+    display: flex;
+    height: 100vh;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .auth-left {
+    flex: 1;
+    background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+    color: white;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+  }
+  
+  .auth-left h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .auth-left p {
+    font-size: 1.2rem;
+  }
+  
+  .auth-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f9f9f9;
+  }
+  
+  .auth-form {
+    width: 80%;
+    max-width: 400px;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    text-align: center;
+  }
+  
+  .auth-form h2 {
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+  
+  .auth-form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  .auth-form button {
+    width: 100%;
+    padding: 10px;
+    background: #4ECDC4;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  
+  .auth-form button:hover {
+    background: #3bbfbf;
+  }
+  
+  .toggle-text {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    color: #007bff;
+  }
+  
+  .toggle-text:hover {
+    text-decoration: underline;
+  }
+  /* Password Input Container */
+.password-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  
+  .password-container input {
+    width: 82%;
+    padding: 10px 40px 10px 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  /* Password Toggle Icon */
+  .password-toggle {
+    position: absolute;
+    right: 20px;
+    top: 35%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  
+  /* Loading Button State */
+  button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  

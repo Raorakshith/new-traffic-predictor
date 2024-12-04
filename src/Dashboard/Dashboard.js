@@ -219,8 +219,9 @@
 
 
 import React, { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "leaflet.heat";
 import axios from "axios";
 import {
   AppBar,
@@ -295,13 +296,32 @@ const NewsList = styled(Box)({
   width: "100%",
   marginTop: "2rem",
 });
+const HeatmapLayer = ({ data }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (!data.length) return;
 
+    const heatLayer = L.heatLayer(data, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 17,
+    }).addTo(map);
+
+    return () => {
+      map.removeLayer(heatLayer);
+    };
+  }, [data, map]);
+
+  return null;
+};
 const Dashboard = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [location, setLocation] = useState(null);
   const [weather, setWeather] = useState(null);
   const [traffic, setTraffic] = useState(null);
   const [news, setNews] = useState([]);
+  const [heatmapData, setHeatmapData] = useState([]);
+
   const navigate = useNavigate();
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -338,10 +358,25 @@ const Dashboard = () => {
       );
       setNews(data.value);
     };
+    const fetchTrafficData = async () => {
+      if (!location) return;
+      const { latitude, longitude } = location;
+      const { data } = await axios.get(
+        `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?point=${latitude},${longitude}&key=5QpZLwcTD1Gz8dJ0O7o1u9vGokfRF1Og`
+      );
+      console.log(data);
+      const processedData = data?.flowSegmentData?.coordinates?.coordinate?.map((coord) => [
+        coord.latitude,
+        coord.longitude,
+        1, // Weight for heatmap intensity (can be adjusted based on traffic speed)
+      ]);
+      setHeatmapData(processedData);
+    };
 
     fetchWeather();
     fetchTraffic();
     fetchNews();
+    fetchTrafficData();
   }, [location]);
 
   return (
@@ -437,6 +472,23 @@ const Dashboard = () => {
           </Grid>
         </Grid>
 
+        {/* {location && (
+          <Box sx={{ marginTop: "2rem", width: "100%", height: "400px" }}>
+            <MapContainer
+              center={[location.latitude, location.longitude]}
+              zoom={13}
+              style={{ height: "100%", borderRadius: "12px" }}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap contributors"
+              />
+              <Marker position={[location.latitude, location.longitude]}>
+                <Popup>Your current location</Popup>
+              </Marker>
+            </MapContainer>
+          </Box>
+        )} */}
         {location && (
           <Box sx={{ marginTop: "2rem", width: "100%", height: "400px" }}>
             <MapContainer
@@ -448,6 +500,7 @@ const Dashboard = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; OpenStreetMap contributors"
               />
+              <HeatmapLayer data={heatmapData} />
               <Marker position={[location.latitude, location.longitude]}>
                 <Popup>Your current location</Popup>
               </Marker>

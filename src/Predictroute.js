@@ -5,6 +5,8 @@ import {
   TrafficLayer,
   useJsApiLoader,
   Marker,
+  DirectionsService,
+  Polyline,
 } from "@react-google-maps/api";
 import {
   Container,
@@ -17,7 +19,17 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  deleteDoc,
+  onSnapshot,
+  getDocs,
+} from "firebase/firestore";
 import axios from "axios";
+import { db } from "./firebase";
 // import { Place, Flag } from "@mui/icons-material"; // Importing icons
 const containerStyle = {
   width: "100%",
@@ -38,11 +50,39 @@ const RoutePlanner = () => {
   const [routeDetails, setRouteDetails] = useState([]);
   const [startPointAddress, setStartPointAddress] = useState();
   const [endPointAddress, setEndPointAddress] = useState();
+  const [blockedRoutes, setBlockedRoutes] = useState([]);
+  const [directionsResult, setDirectionsResult] = useState(null);
+  const [optimalRoute, setOptimalRoute] = useState(null);
+  const [isFirstTime, setisFirstTime] = useState(true);
+  const [show, setShow] = useState(false);
+
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyD590z__itIHB85Rrz0XJxEpi-PVYPs2b0",
     libraries: ["places"],
   });
+
+  useEffect(() => {
+    const fetchBlockedRoutes = async () => {
+      try {
+        const blockedRoutesCollection = collection(db, "blockedRoutes");
+        const querySnapshot = await getDocs(blockedRoutesCollection);
+        const routes = [];
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const polyline = decodePolyline(data.polyline); // Decode polyline to coordinates
+          routes.push(polyline);
+        });
+
+        console.log('blocked routes now', routes);
+        setBlockedRoutes(routes);
+      } catch (error) {
+        console.error("Error fetching blocked routes: ", error);
+      }
+    };
+
+    fetchBlockedRoutes();
+  }, []);
   if (!isLoaded) return <CircularProgress />;
 
   const fetchRoutes = async () => {
@@ -71,6 +111,7 @@ const RoutePlanner = () => {
           alert("Error fetching directions: " + status);
         }
         setLoading(false);
+        setShow(true);
       }
     );
   };
@@ -232,6 +273,68 @@ const RoutePlanner = () => {
     setOptimalRouteIndex(index); // Update the selected route index
   };
 
+ 
+
+  // Decode polyline string into coordinates
+  const decodePolyline = (polyline) => {
+    const coordinates = [];
+    let index = 0,
+      len = polyline.length;
+    let lat = 0,
+      lng = 0;
+
+    while (index < len) {
+      let b,
+        shift = 0,
+        result = 0;
+      do {
+        b = polyline.charCodeAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      const dlat = result & 1 ? ~(result >> 1) : result >> 1;
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = polyline.charCodeAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      const dlng = result & 1 ? ~(result >> 1) : result >> 1;
+      lng += dlng;
+
+      coordinates.push({ lat: lat / 1e5, lng: lng / 1e5 });
+    }
+
+    return coordinates;
+  };
+
+  const directionsCallback = (response) => {
+    if (response && response.status === "OK") {
+      setDirectionsResult(response);
+    }
+  };
+
+  const checkRouteBlocked = (route) => {
+    for (const blockedRoute of blockedRoutes) {
+      console.log('blocked', blockedRoutes)
+      for (const point of route) {
+        if (
+          blockedRoute.some(
+            (blockedPoint) =>
+              Math.abs(blockedPoint.lat - point.lat) < 0.001 &&
+              Math.abs(blockedPoint.lng - point.lng) < 0.001
+          )
+        ) {
+          return true; // Route is blocked
+        }
+      }
+    }
+    return false; // Route is not blocked
+  };
+
   return (
     <Container>
       <Typography variant="h4" textAlign="center" gutterBottom>
@@ -248,6 +351,33 @@ const RoutePlanner = () => {
           >
             {startPoint && <Marker position={startPoint} label="Start" />}
             {endPoint && <Marker position={endPoint} label="End" />}
+            {blockedRoutes.map((route, index) => (
+              <Polyline
+                key={index}
+                path={route}
+                options={{
+                  strokeColor: "black",
+                  strokeOpacity: 0.8,
+                  strokeWeight: 4,
+                }}
+              />
+            ))}
+            {show&&(<DirectionsService
+              options={{
+                destination: endPoint,
+                origin: startPoint,
+                travelMode: "DRIVING",
+              }}
+              callback={(response) => {
+                console.log('response', response)
+                if (!checkRouteBlocked(response.routes[0].overview_path) && isFirstTime) {
+                  directionsCallback(response);
+                  setisFirstTime(false)
+                } else {
+                  console.warn("Optimal route is blocked!");
+                }
+              }}
+            />)}
             {directions && (
               <DirectionsRenderer
                 directions={directions}

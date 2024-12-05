@@ -116,11 +116,11 @@ const RoutePlanner = () => {
 
     fetchBlockedRoutes();
   }, []);
-  useEffect(() => {
-    if (blockedRoutes && blockedRoutes?.length > 0) {
-      setUpdateBlocked(!updateBlocked);
-    }
-  }, [blockedRoutes]);
+  // useEffect(() => {
+  //   if (blockedRoutes && blockedRoutes?.length > 0) {
+  //     setUpdateBlocked(!updateBlocked);
+  //   }
+  // }, [blockedRoutes]);
   if (!isLoaded) return <CircularProgress />;
   const fetchBlockedRoutesnew = async () => {
     try {
@@ -356,30 +356,50 @@ const RoutePlanner = () => {
   };
 
   const checkRouteBlockedNew = (route) => {
+    console.log("Checking Route:", route);
+  
     // Loop through the list of blocked routes
     for (const blockedRoute of blockedRoutes) {
-      console.log('route disp', route)
-      console.log("Checking blocked route:", blockedRoute);
-
-      // Check if the current route matches the blocked route
-      const isBlocked = route.some((point, index) => {
-        const blockedPoint = blockedRoute[index];
-        // Compare points in route and blockedRoute with a threshold (e.g., 0.001)
-        return (
-          Math.abs(blockedPoint.lat - point.lat) < 0.001 &&
-          Math.abs(blockedPoint.lng - point.lng) < 0.001
-        );
+      console.log("Checking against Blocked Route:", blockedRoute);
+  
+      // Check if any point in the current route matches any point in the blocked route
+      const isBlocked = route.some((point) => {
+        // Extract the numeric values for lat and lng
+        const pointLat = typeof point.lat === "function" ? point.lat() : point.lat;
+        const pointLng = typeof point.lng === "function" ? point.lng() : point.lng;
+  
+        return blockedRoute.some((blockedPoint) => {
+          const blockedLat =
+            typeof blockedPoint.lat === "function"
+              ? blockedPoint.lat()
+              : blockedPoint.lat;
+          const blockedLng =
+            typeof blockedPoint.lng === "function"
+              ? blockedPoint.lng()
+              : blockedPoint.lng;
+  
+          const isMatch =
+            Math.abs(blockedLat - pointLat) < 0.001 &&
+            Math.abs(blockedLng - pointLng) < 0.001;
+  
+          if (isMatch) {
+            console.log("Matching Point Found:", point, blockedPoint);
+          }
+          return isMatch;
+        });
       });
-
-      // If all points in the route match with the blocked route
+  
       if (isBlocked) {
-        console.log("new nlock found")
-        return true; // The route is blocked
+        // setUpdateBlocked(true);
+        console.log("Route Blocked Detected!");
+        return true;
       }
     }
-
-    return false; // The route is not blocked
+  
+    console.log("No Blockage Detected");
+    return false;
   };
+  
 
   return (
     <Container>
@@ -408,7 +428,7 @@ const RoutePlanner = () => {
                 }}
               />
             ))}
-            {show && (
+            {/* {show && (
               <DirectionsService
                 options={{
                   destination: endPoint,
@@ -429,7 +449,7 @@ const RoutePlanner = () => {
                   }
                 }}
               />
-            )}
+            )} */}
             {directions && (
               <DirectionsRenderer
                 directions={directions}

@@ -55,6 +55,7 @@ const RoutePlanner = () => {
   const [optimalRoute, setOptimalRoute] = useState(null);
   const [isFirstTime, setisFirstTime] = useState(true);
   const [show, setShow] = useState(false);
+  const [updateBlocked, setUpdateBlocked] = useState(false);
 
 
   const { isLoaded } = useJsApiLoader({
@@ -83,8 +84,29 @@ const RoutePlanner = () => {
 
     fetchBlockedRoutes();
   }, []);
+  useEffect(()=>{
+    if(blockedRoutes&&blockedRoutes?.length>0){
+      setUpdateBlocked(!updateBlocked);
+    }
+  },[blockedRoutes]);
   if (!isLoaded) return <CircularProgress />;
+  const fetchBlockedRoutesnew = async () => {
+    try {
+      const blockedRoutesCollection = collection(db, "blockedRoutes");
+      const querySnapshot = await getDocs(blockedRoutesCollection);
+      const routes = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        const polyline = decodePolyline(data.polyline); // Decode polyline to coordinates
+        routes.push(polyline);
+      });
 
+      console.log('blocked routes now', routes);
+      setBlockedRoutes(routes);
+    } catch (error) {
+      console.error("Error fetching blocked routes: ", error);
+    }
+  };
   const fetchRoutes = async () => {
     if (!startPoint || !endPoint) {
       alert("Please select both start and end points!");
@@ -375,6 +397,8 @@ const RoutePlanner = () => {
                   setisFirstTime(false)
                 } else {
                   console.warn("Optimal route is blocked!");
+                  fetchBlockedRoutesnew();
+                  
                 }
               }}
             />)}

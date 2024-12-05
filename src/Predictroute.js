@@ -57,12 +57,44 @@ const RoutePlanner = () => {
   const [show, setShow] = useState(false);
   const [updateBlocked, setUpdateBlocked] = useState(false);
 
-
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyD590z__itIHB85Rrz0XJxEpi-PVYPs2b0",
     libraries: ["places"],
   });
+  const decodePolyline = (polyline) => {
+    const coordinates = [];
+    let index = 0,
+      len = polyline.length;
+    let lat = 0,
+      lng = 0;
 
+    while (index < len) {
+      let b,
+        shift = 0,
+        result = 0;
+      do {
+        b = polyline.charCodeAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      const dlat = result & 1 ? ~(result >> 1) : result >> 1;
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = polyline.charCodeAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      const dlng = result & 1 ? ~(result >> 1) : result >> 1;
+      lng += dlng;
+
+      coordinates.push({ lat: lat / 1e5, lng: lng / 1e5 });
+    }
+
+    return coordinates;
+  };
   useEffect(() => {
     const fetchBlockedRoutes = async () => {
       try {
@@ -75,7 +107,7 @@ const RoutePlanner = () => {
           routes.push(polyline);
         });
 
-        console.log('blocked routes now', routes);
+        console.log("blocked routes now", routes);
         setBlockedRoutes(routes);
       } catch (error) {
         console.error("Error fetching blocked routes: ", error);
@@ -84,11 +116,11 @@ const RoutePlanner = () => {
 
     fetchBlockedRoutes();
   }, []);
-  useEffect(()=>{
-    if(blockedRoutes&&blockedRoutes?.length>0){
+  useEffect(() => {
+    if (blockedRoutes && blockedRoutes?.length > 0) {
       setUpdateBlocked(!updateBlocked);
     }
-  },[blockedRoutes]);
+  }, [blockedRoutes]);
   if (!isLoaded) return <CircularProgress />;
   const fetchBlockedRoutesnew = async () => {
     try {
@@ -101,7 +133,7 @@ const RoutePlanner = () => {
         routes.push(polyline);
       });
 
-      console.log('blocked routes now', routes);
+      console.log("blocked routes now", routes);
       setBlockedRoutes(routes);
     } catch (error) {
       console.error("Error fetching blocked routes: ", error);
@@ -129,6 +161,7 @@ const RoutePlanner = () => {
           setDirections(result);
           determineBestRoute(result.routes);
           fetchRouteTrafficDetails(result.routes);
+          console.log('routes generated', result)
         } else {
           alert("Error fetching directions: " + status);
         }
@@ -160,6 +193,7 @@ const RoutePlanner = () => {
       return {
         routeIndex: index,
         distance: leg.distance.text,
+        routedata: route,
         duration: leg.duration.text,
         trafficSpeed: Math.floor(Math.random() * (80 - 30) + 30), // Mock: random speed
         trafficVolume: Math.floor(Math.random() * (100 - 50) + 50), // Mock: random volume
@@ -295,43 +329,7 @@ const RoutePlanner = () => {
     setOptimalRouteIndex(index); // Update the selected route index
   };
 
- 
-
   // Decode polyline string into coordinates
-  const decodePolyline = (polyline) => {
-    const coordinates = [];
-    let index = 0,
-      len = polyline.length;
-    let lat = 0,
-      lng = 0;
-
-    while (index < len) {
-      let b,
-        shift = 0,
-        result = 0;
-      do {
-        b = polyline.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      const dlat = result & 1 ? ~(result >> 1) : result >> 1;
-      lat += dlat;
-
-      shift = 0;
-      result = 0;
-      do {
-        b = polyline.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      const dlng = result & 1 ? ~(result >> 1) : result >> 1;
-      lng += dlng;
-
-      coordinates.push({ lat: lat / 1e5, lng: lng / 1e5 });
-    }
-
-    return coordinates;
-  };
 
   const directionsCallback = (response) => {
     if (response && response.status === "OK") {
@@ -341,7 +339,7 @@ const RoutePlanner = () => {
 
   const checkRouteBlocked = (route) => {
     for (const blockedRoute of blockedRoutes) {
-      console.log('blocked', blockedRoutes)
+      console.log("blocked", blockedRoutes);
       for (const point of route) {
         if (
           blockedRoute.some(
@@ -355,6 +353,32 @@ const RoutePlanner = () => {
       }
     }
     return false; // Route is not blocked
+  };
+
+  const checkRouteBlockedNew = (route) => {
+    // Loop through the list of blocked routes
+    for (const blockedRoute of blockedRoutes) {
+      console.log('route disp', route)
+      console.log("Checking blocked route:", blockedRoute);
+
+      // Check if the current route matches the blocked route
+      const isBlocked = route.some((point, index) => {
+        const blockedPoint = blockedRoute[index];
+        // Compare points in route and blockedRoute with a threshold (e.g., 0.001)
+        return (
+          Math.abs(blockedPoint.lat - point.lat) < 0.001 &&
+          Math.abs(blockedPoint.lng - point.lng) < 0.001
+        );
+      });
+
+      // If all points in the route match with the blocked route
+      if (isBlocked) {
+        console.log("new nlock found")
+        return true; // The route is blocked
+      }
+    }
+
+    return false; // The route is not blocked
   };
 
   return (
@@ -384,24 +408,28 @@ const RoutePlanner = () => {
                 }}
               />
             ))}
-            {show&&(<DirectionsService
-              options={{
-                destination: endPoint,
-                origin: startPoint,
-                travelMode: "DRIVING",
-              }}
-              callback={(response) => {
-                console.log('response', response)
-                if (!checkRouteBlocked(response.routes[0].overview_path) && isFirstTime) {
-                  directionsCallback(response);
-                  setisFirstTime(false)
-                } else {
-                  console.warn("Optimal route is blocked!");
-                  fetchBlockedRoutesnew();
-                  
-                }
-              }}
-            />)}
+            {show && (
+              <DirectionsService
+                options={{
+                  destination: endPoint,
+                  origin: startPoint,
+                  travelMode: "DRIVING",
+                }}
+                callback={(response) => {
+                  console.log("response", response);
+                  if (
+                    !checkRouteBlocked(response.routes[0].overview_path) &&
+                    isFirstTime
+                  ) {
+                    directionsCallback(response);
+                    setisFirstTime(false);
+                  } else {
+                    console.warn("Optimal route is blocked!");
+                    fetchBlockedRoutesnew();
+                  }
+                }}
+              />
+            )}
             {directions && (
               <DirectionsRenderer
                 directions={directions}
@@ -443,7 +471,17 @@ const RoutePlanner = () => {
               >
                 <ListItemText
                   primary={`Route ${index + 1}`}
-                  secondary={`Distance: ${detail.distance}, Duration: ${detail.duration}, Traffic Speed: ${detail.trafficSpeed} km/h, Traffic Volume: ${detail.trafficVolume}, ETA: ${detail.estimatedArrivalTime}`}
+                  secondary={`Distance: ${detail.distance}, Duration: ${
+                    detail.duration
+                  }, Traffic Speed: ${
+                    detail.trafficSpeed
+                  } km/h, Traffic Volume: ${detail.trafficVolume}, ETA: ${
+                    detail.estimatedArrivalTime
+                  }, ${
+                    checkRouteBlockedNew(detail.routedata.overview_path)
+                      ? "There is a blockage in this route"
+                      : ""
+                  }`}
                 />
               </ListItem>
             ))}

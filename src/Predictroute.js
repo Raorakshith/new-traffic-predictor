@@ -18,6 +18,11 @@ import {
   List,
   ListItem,
   ListItemText,
+  Drawer,
+  IconButton,
+  AppBar,
+  Box,
+  Toolbar,
 } from "@mui/material";
 import {
   getFirestore,
@@ -29,12 +34,30 @@ import {
   getDocs,
 } from "firebase/firestore";
 import axios from "axios";
+import { styled } from "@mui/system";
+import { useNavigate } from "react-router-dom";
+import MenuIcon from "@mui/icons-material/Menu";
+
 import { db } from "./firebase";
 // import { Place, Flag } from "@mui/icons-material"; // Importing icons
 const containerStyle = {
   width: "100%",
   height: "600px",
 };
+const DrawerContent = styled(Box)({
+  width: 250,
+  padding: "1rem",
+  backgroundColor: "#f5f5f5",
+});
+
+const DashboardContainer = styled(Box)({
+  minHeight: "100vh",
+  backgroundColor: "#eef1f5",
+  padding: "2rem",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+});
 
 const center = { lat: 12.9716, lng: 77.5946 }; // Default center (Bangalore)
 
@@ -56,6 +79,8 @@ const RoutePlanner = () => {
   const [isFirstTime, setisFirstTime] = useState(true);
   const [show, setShow] = useState(false);
   const [updateBlocked, setUpdateBlocked] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyD590z__itIHB85Rrz0XJxEpi-PVYPs2b0",
@@ -402,7 +427,48 @@ const RoutePlanner = () => {
   
 
   return (
-    <Container>
+    <>
+      <AppBar position="static" sx={{ backgroundColor: "#334455" }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            onClick={() => setDrawerOpen(true)}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            Traffix Route Planner
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
+      <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <DrawerContent>
+          <Typography variant="h6">Navigation</Typography>
+          <List>
+            <ListItem button>
+              <ListItemText primary="Dashboard" onClick={()=>{
+                navigate('/dashboard')
+              }}/>
+            </ListItem>
+            <ListItem button>
+              <ListItemText primary="Route Plan" onClick={()=>{
+                navigate('/route-plan')
+              }}/>
+            </ListItem>
+            <ListItem button>
+              <ListItemText primary="Settings" onClick={()=>{
+                navigate('/block-map')
+              }} />
+            </ListItem>
+          </List>
+        </DrawerContent>
+      </Drawer>
+
+      <DashboardContainer>
+      <Container>
       <Typography variant="h4" textAlign="center" gutterBottom>
         Route Planner with Traffic, Weather, and News Insights
       </Typography>
@@ -624,6 +690,9 @@ const RoutePlanner = () => {
         </Paper>
       )}
     </Container>
+      </DashboardContainer>
+    </>
+   
   );
 };
 

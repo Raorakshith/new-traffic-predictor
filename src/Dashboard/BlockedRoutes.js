@@ -236,6 +236,11 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  Drawer,
+  IconButton,
+  AppBar,
+  Box,
+  Toolbar,
 } from "@mui/material";
 import {
   getFirestore,
@@ -247,12 +252,29 @@ import {
 } from "firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { db, storage } from "../firebase"; // Ensure `firebase.js` exports configured `db` and `storage`
+import { styled } from "@mui/system";
+import MenuIcon from "@mui/icons-material/Menu";
+import { useNavigate } from "react-router-dom";
 
 const containerStyle = {
   width: "100%",
   height: "600px",
 };
 
+const DrawerContent = styled(Box)({
+  width: 250,
+  padding: "1rem",
+  backgroundColor: "#f5f5f5",
+});
+
+const DashboardContainer = styled(Box)({
+  minHeight: "100vh",
+  backgroundColor: "#eef1f5",
+  padding: "2rem",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+});
 const center = { lat: 12.9716, lng: 77.5946 };
 
 const MapWithAdminControls = () => {
@@ -269,6 +291,7 @@ const MapWithAdminControls = () => {
   const [blockageType, setBlockageType] = useState("");
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyD590z__itIHB85Rrz0XJxEpi-PVYPs2b0",
@@ -387,9 +410,50 @@ const MapWithAdminControls = () => {
   };
 
   return (
-    <Container>
+    <>
+      <AppBar position="static" sx={{ backgroundColor: "#334455" }}>
+        <Toolbar>
+          <IconButton
+            edge="start"
+            color="inherit"
+            aria-label="menu"
+            onClick={() => setDrawerOpen(true)}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            Traffix Route Planner
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
+      <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+        <DrawerContent>
+          <Typography variant="h6">Navigation</Typography>
+          <List>
+            <ListItem button>
+              <ListItemText primary="Dashboard" onClick={()=>{
+                navigate('/dashboard')
+              }}/>
+            </ListItem>
+            <ListItem button>
+              <ListItemText primary="Route Plan" onClick={()=>{
+                navigate('/route-plan')
+              }}/>
+            </ListItem>
+            <ListItem button>
+              <ListItemText primary="Settings" onClick={()=>{
+                navigate('/block-map')
+              }} />
+            </ListItem>
+          </List>
+        </DrawerContent>
+      </Drawer>
+
+      <DashboardContainer>
+      <Container>
       <Typography variant="h4" textAlign="center" gutterBottom>
-        Route Planner with Blocking Feature
+        Manage Routes
       </Typography>
 
       <Grid container spacing={2}>
@@ -528,6 +592,9 @@ const MapWithAdminControls = () => {
         </DialogActions>
       </Dialog>
     </Container>
+      </DashboardContainer>
+    </>
+   
   );
 };
 

@@ -245,6 +245,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import ArticleIcon from "@mui/icons-material/Article";
 import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
+import { db } from "../firebase";
 
 const DrawerContent = styled(Box)({
   width: 250,
@@ -298,6 +299,10 @@ const NewsList = styled(Box)({
 });
 const HeatmapLayer = ({ data }) => {
   const map = useMap();
+  const [userData, setuserData] = useState();
+  useEffect(()=>{
+    
+  },[]);
   useEffect(() => {
     if (!data.length) return;
 

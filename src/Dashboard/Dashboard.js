@@ -423,7 +423,7 @@ const Dashboard = () => {
       <DashboardContainer>
         <HeroSection>
           <HeroContent>
-            <Typography variant="h4">Welcome to TrafficX!</Typography>
+            <Typography variant="h4">Welcome to TraffiX</Typography>
             <Typography style={{padding:5}}>
               Stay updated with live traffic, weather conditions,get shortest routes, many more and news.
             </Typography>

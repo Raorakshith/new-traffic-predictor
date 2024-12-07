@@ -412,7 +412,7 @@ const Dashboard = () => {
               }}/>
             </ListItem>
             <ListItem button>
-              <ListItemText primary="Settings" onClick={()=>{
+              <ListItemText primary="Block Route" onClick={()=>{
                 navigate('/block-map')
               }} />
             </ListItem>

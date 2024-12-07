@@ -18,10 +18,35 @@ const AuthPage = () => {
   const navigate = useNavigate();
 
   const toggleForm = () => setIsSignup((prev) => !prev);
+  const validatePassword = (password) => {
+    const minLength = 8;
+    const specialChar = /[!@#$%^&*(),.?":{}|<>]/;
+    const upperCase = /[A-Z]/;
+    const number = /[0-9]/;
 
+    if (password.length < minLength) {
+      return "Password must be at least 8 characters long.";
+    }
+    if (!specialChar.test(password)) {
+      return "Password must contain at least one special character.";
+    }
+    if (!upperCase.test(password)) {
+      return "Password must contain at least one uppercase letter.";
+    }
+    if (!number.test(password)) {
+      return "Password must contain at least one numerical value.";
+    }
+    return null;
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    const validationError = validatePassword(password);
+    if (validationError) {
+      toast.error(validationError);
+      setLoading(false);
+      return;
+    }
     try {
       if (isSignup) {
         await createUserWithEmailAndPassword(auth, email, password);

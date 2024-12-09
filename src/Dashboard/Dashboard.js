@@ -1,222 +1,3 @@
-// import React, { useEffect, useState } from "react";
-// import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-// import "leaflet/dist/leaflet.css";
-// import axios from "axios";
-// import {
-//   AppBar,
-//   Toolbar,
-//   Tabs,
-//   Tab,
-//   Button,
-//   Card,
-//   CardContent,
-//   Typography,
-//   Grid,
-//   Container,
-//   Box,
-// } from "@mui/material";
-// import LocationOnIcon from "@mui/icons-material/LocationOn";
-// import WbSunnyIcon from "@mui/icons-material/WbSunny";
-// import TrafficIcon from "@mui/icons-material/Traffic";
-// import { makeStyles } from "@mui/styles";
-
-// const useStyles = makeStyles({
-//   appBar: {
-//     background: "linear-gradient(90deg, #6a11cb, #2575fc)",
-//     boxShadow: "0px 4px 20px rgba(0,0,0,0.2)",
-//   },
-//   heroSection: {
-//     background: "linear-gradient(120deg, #f6d365, #fda085)",
-//     color: "#fff",
-//     borderRadius: "12px",
-//     padding: "3rem 2rem",
-//     display: "flex",
-//     alignItems: "center",
-//     justifyContent: "space-between",
-//     marginBottom: "2rem",
-//   },
-//   heroContent: {
-//     flex: 1,
-//     paddingRight: "2rem",
-//   },
-//   heroImage: {
-//     flex: 1,
-//     maxWidth: "400px",
-//   },
-//   card: {
-//     background: "#ffffff",
-//     boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.1)",
-//     borderRadius: "8px",
-//     padding: "1.5rem",
-//     textAlign: "center",
-//     transition: "transform 0.2s ease",
-//     "&:hover": {
-//       transform: "scale(1.05)",
-//     },
-//   },
-//   mapContainer: {
-//     borderRadius: "12px",
-//     overflow: "hidden",
-//     boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.1)",
-//     marginTop: "2rem",
-//   },
-// });
-
-// const Dashboard = () => {
-//   const classes = useStyles();
-//   const [location, setLocation] = useState(null);
-//   const [weather, setWeather] = useState(null);
-//   const [traffic, setTraffic] = useState(null);
-//   const [news, setNews] = useState([]);
-//   const [activeTab, setActiveTab] = useState(0);
-
-//   useEffect(() => {
-//     navigator.geolocation.getCurrentPosition((position) => {
-//       const { latitude, longitude } = position.coords;
-//       setLocation({ latitude, longitude });
-//     });
-//   }, []);
-//   useEffect(() => {
-//     const fetchWeather = async () => {
-//       if (!location) return;
-//       const { data } = await axios.get(
-//         `https://api.openweathermap.org/data/2.5/weather?lat=${location.latitude}&lon=${location.longitude}&appid=4b3120747b9ef1f222316cf9cf47bd7a&units=metric`
-//       );
-//       setWeather(data);
-//     };
-
-//     const fetchTraffic = async () => {
-//       if (!location) return;
-//       const { data } = await axios.get(
-//         `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?point=${location.latitude},${location.longitude}&key=5QpZLwcTD1Gz8dJ0O7o1u9vGokfRF1Og`
-//       );
-//       setTraffic(data);
-//     };
-
-//     const fetchNews = async () => {
-//       const { data } = await axios.get(
-//         `https://api.bing.microsoft.com/v7.0/news/search?q=traffic&count=10`,
-//         {
-//           headers: {
-//             "Ocp-Apim-Subscription-Key": "5d37de4bda40423b8904c2a8fcc2b755",
-//           },
-//         }
-//       );
-//       setNews(data.value);
-//     };
-
-//     fetchWeather();
-//     fetchTraffic();
-//     fetchNews();
-//   }, [location]);
-
-//   return (
-//     <Box
-//       sx={{ backgroundColor: "#f9fafc", minHeight: "100vh", padding: "2rem 0" }}
-//     >
-//       {/* Navigation */}
-//       <AppBar position="static" className={classes.appBar}>
-//         <Toolbar>
-//           <Typography variant="h6" sx={{ flexGrow: 1 }}>
-//             Traffic Dashboard
-//           </Typography>
-//           <Tabs
-//             value={activeTab}
-//             onChange={(e, newValue) => setActiveTab(newValue)}
-//             textColor="inherit"
-//             indicatorColor="secondary"
-//           >
-//             <Tab label="Dashboard" />
-//             <Tab label="Predict" />
-//             <Tab label="Manage" />
-//           </Tabs>
-//         </Toolbar>
-//       </AppBar>
-
-//       <Container>
-//         {/* Hero Section */}
-//         <Box className={classes.heroSection}>
-//           <Box className={classes.heroContent}>
-//             <Typography variant="h3" gutterBottom>
-//               Welcome to Your Dashboard
-//             </Typography>
-//             <Typography variant="h6" gutterBottom>
-//               Real-time traffic updates, weather forecasts, and more at your
-//               fingertips.
-//             </Typography>
-//             <Button variant="contained" color="secondary" size="large">
-//               Explore Features
-//             </Button>
-//           </Box>
-//           <img
-//             src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSj-rBuiUH47r__O_3a3BkpdsX3lOTs7vdaHg&s"
-//             alt="Dashboard Illustration"
-//             className={classes.heroImage}
-//           />
-//         </Box>
-
-//         {/* Cards */}
-//         <Grid container spacing={4}>
-//           <Grid item xs={12} sm={4}>
-//             <Card className={classes.card}>
-//               <WbSunnyIcon fontSize="large" sx={{ color: "#f39c12" }} />
-//               <Typography variant="h6">Weather</Typography>
-//               <Typography variant="body1">
-//                 {weather
-//                   ? `${weather.main.temp}°C, ${weather.weather[0].description}`
-//                   : "Loading..."}
-//               </Typography>
-//             </Card>
-//           </Grid>
-//           <Grid item xs={12} sm={4}>
-//             <Card className={classes.card}>
-//               <TrafficIcon fontSize="large" sx={{ color: "#27ae60" }} />
-//               <Typography variant="h6">Traffic</Typography>
-//               <Typography variant="body1">
-//                 {traffic
-//                   ? `${traffic.flowSegmentData.currentSpeed} km/h`
-//                   : "Loading..."}
-//               </Typography>
-//             </Card>
-//           </Grid>
-//           <Grid item xs={12} sm={4}>
-//             <Card className={classes.card}>
-//               <LocationOnIcon fontSize="large" sx={{ color: "#2980b9" }} />
-//               <Typography variant="h6">Location</Typography>
-//               <Typography variant="body1">
-//                 {location
-//                   ? `${location.latitude}, ${location.longitude}`
-//                   : "Loading..."}
-//               </Typography>
-//             </Card>
-//           </Grid>
-//         </Grid>
-
-//         {/* Map */}
-//         {location && (
-//           <Box className={classes.mapContainer}>
-//             <MapContainer
-//               center={[location.latitude, location.longitude]}
-//               zoom={13}
-//               style={{ height: "400px" }}
-//             >
-//               <TileLayer
-//                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-//                 attribution="&copy; OpenStreetMap contributors"
-//               />
-//               <Marker position={[location.latitude, location.longitude]}>
-//                 <Popup>Your current location</Popup>
-//               </Marker>
-//             </MapContainer>
-//           </Box>
-//         )}
-//       </Container>
-//     </Box>
-//   );
-// };
-
-// export default Dashboard;
-
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -255,7 +36,15 @@ import ArticleIcon from "@mui/icons-material/Article";
 import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
-import { Form, Row, Col, Container, Alert, Spinner } from "react-bootstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  Alert,
+  Spinner,
+  Badge,
+} from "react-bootstrap";
 const DrawerContent = styled(Box)({
   width: 250,
   padding: "1rem",
@@ -564,6 +353,19 @@ const Dashboard = () => {
       </div>
     );
   };
+  const getBadgeVariant = (category) => {
+    switch (category) {
+      case "Low":
+        return "success";
+      case "Medium":
+        return "warning";
+      case "High":
+        return "danger";
+      default:
+        return "secondary";
+    }
+  };
+
   return (
     <>
       <AppBar position="static" sx={{ backgroundColor: "#334455" }}>
@@ -761,6 +563,42 @@ const Dashboard = () => {
             </Card>
           ))}
         </NewsList>
+        {predictedData && (
+          <Row className="mt-4">
+            <Col md={8}>
+              <Card>
+                <h2>Traffic Predictions</h2>
+                <div>
+                  <h3>{predictedData.region} Traffic Analysis</h3>
+
+                  {Object.entries(predictedData.predictions).map(
+                    ([interval, prediction]) => (
+                      <div key={interval} className="mb-3">
+                        <h4>
+                          {interval.replace("_", " ").toUpperCase()} Prediction
+                        </h4>
+                        <p>
+                          <strong>Volume:</strong> {prediction.volume}{" "}
+                          vehicles/hour{" "}
+                          <Badge bg={getBadgeVariant(prediction.category)}>
+                            {prediction.category}
+                          </Badge>
+                        </p>
+                        <p>
+                          <strong>Description:</strong> {prediction.description}
+                        </p>
+                        <p>
+                          <strong>Recommendation:</strong>{" "}
+                          {prediction.recommendation}
+                        </p>
+                      </div>
+                    )
+                  )}
+                </div>
+              </Card>
+            </Col>
+          </Row>
+        )}
       </DashboardContainer>
     </>
   );

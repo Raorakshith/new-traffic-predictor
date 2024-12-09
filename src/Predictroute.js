@@ -530,6 +530,18 @@ const RoutePlanner = () => {
             ) : (
               <div />
             )}
+            {userData?.userType == "Admin" ? (
+              <ListItem button>
+                <ListItemText
+                  primary="Metrics"
+                  onClick={() => {
+                    navigate("/metrics");
+                  }}
+                />
+              </ListItem>
+            ) : (
+              <div />
+            )}
           </List>
         </DrawerContent>
       </Drawer>
@@ -800,13 +812,11 @@ const RoutePlanner = () => {
               <ul>
                 {news.map((article, index) => (
                   <li key={index}>
-                    <a
-                      href={article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <div
+                      style={{ fontSize: 12, fontWeight: "normal", padding: 5 }}
                     >
                       {article.name}
-                    </a>
+                    </div>
                   </li>
                 ))}
               </ul>

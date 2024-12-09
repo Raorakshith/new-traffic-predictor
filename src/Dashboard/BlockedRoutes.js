@@ -207,7 +207,6 @@
 
 // export default MapWithAdminControls;
 
-
 import React, { useState, useEffect } from "react";
 import {
   GoogleMap,
@@ -294,7 +293,16 @@ const MapWithAdminControls = () => {
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyD590z__itIHB85Rrz0XJxEpi-PVYPs2b0",
-    libraries: ["places", "geocoding", "maps", "marker","routes","streetView","core","visualization"],
+    libraries: [
+      "places",
+      "geocoding",
+      "maps",
+      "marker",
+      "routes",
+      "streetView",
+      "core",
+      "visualization",
+    ],
   });
 
   useEffect(() => {
@@ -468,6 +476,18 @@ const MapWithAdminControls = () => {
                   primary="Block Routes"
                   onClick={() => {
                     navigate("/block-map");
+                  }}
+                />
+              </ListItem>
+            ) : (
+              <div />
+            )}
+            {userData?.userType == "Admin" ? (
+              <ListItem button>
+                <ListItemText
+                  primary="Metrics"
+                  onClick={() => {
+                    navigate("/metrics");
                   }}
                 />
               </ListItem>

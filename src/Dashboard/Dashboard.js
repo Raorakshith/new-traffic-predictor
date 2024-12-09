@@ -618,6 +618,18 @@ const Dashboard = () => {
             ) : (
               <div />
             )}
+            {userData?.userType == "Admin" ? (
+              <ListItem button>
+                <ListItemText
+                  primary="Metrics"
+                  onClick={() => {
+                    navigate("/metrics");
+                  }}
+                />
+              </ListItem>
+            ) : (
+              <div />
+            )}
           </List>
         </DrawerContent>
       </Drawer>

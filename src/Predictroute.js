@@ -24,6 +24,7 @@ import {
   AppBar,
   Box,
   Toolbar,
+  Snackbar,
 } from "@mui/material";
 import {
   getFirestore,
@@ -38,8 +39,14 @@ import axios from "axios";
 import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import { db } from "./firebase";
+import MuiAlert from "@mui/material/Alert";
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
+
 // import { Place, Flag } from "@mui/icons-material"; // Importing icons
 const containerStyle = {
   width: "100%",
@@ -83,13 +90,30 @@ const RoutePlanner = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [autocompleteStart, setAutocompleteStart] = useState(null);
   const [autocompleteEnd, setAutocompleteEnd] = useState(null);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState(null);
 
   const navigate = useNavigate();
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyD590z__itIHB85Rrz0XJxEpi-PVYPs2b0",
-    libraries: ["places"],
+    libraries: [
+      "places",
+      "geocoding",
+      "maps",
+      "marker",
+      "routes",
+      "streetView",
+      "core",
+      "visualization",
+    ],
   });
+  const handleAlertClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setAlertOpen(false);
+  };
   const decodePolyline = (polyline) => {
     const coordinates = [];
     let index = 0,
@@ -150,6 +174,15 @@ const RoutePlanner = () => {
   //     setUpdateBlocked(!updateBlocked);
   //   }
   // }, [blockedRoutes]);
+  const [userData, setuserData] = useState();
+  const getUserData = () => {
+    const userData = localStorage.getItem("user");
+    return userData ? JSON.parse(userData) : null;
+  };
+
+  useEffect(() => {
+    setuserData(getUserData());
+  }, []);
   if (!isLoaded) return <CircularProgress />;
   const fetchBlockedRoutesnew = async () => {
     try {
@@ -272,7 +305,7 @@ const RoutePlanner = () => {
 
   const fetchWeatherAndNews = async (endPoint) => {
     const openWeatherApiKey = "4b3120747b9ef1f222316cf9cf47bd7a";
-    const bingNewsApiKey = "5d37de4bda40423b8904c2a8fcc2b755";
+    const bingNewsApiKey = "a14994d42f804c0b974e2f65784cdfb9";
 
     try {
       const startPlaceName = await geocodeLatLng(
@@ -339,6 +372,7 @@ const RoutePlanner = () => {
 
   const handleRouteSelect = (index) => {
     setOptimalRouteIndex(index); // Update the selected route index
+    setSelectedRouteIndex(index);
   };
 
   // Decode polyline string into coordinates
@@ -484,20 +518,34 @@ const RoutePlanner = () => {
                 }}
               />
             </ListItem>
-            <ListItem button>
-              <ListItemText
-                primary="Settings"
-                onClick={() => {
-                  navigate("/block-map");
-                }}
-              />
-            </ListItem>
+            {userData?.userType == "Admin" ? (
+              <ListItem button>
+                <ListItemText
+                  primary="Block Routes"
+                  onClick={() => {
+                    navigate("/block-map");
+                  }}
+                />
+              </ListItem>
+            ) : (
+              <div />
+            )}
           </List>
         </DrawerContent>
       </Drawer>
 
       <DashboardContainer>
         <Container>
+          <Snackbar
+            open={alertOpen}
+            autoHideDuration={3000} // Alert will disappear after 3 seconds
+            onClose={handleAlertClose}
+            anchorOrigin={{ vertical: "top", horizontal: "center" }} // Position of the alert
+          >
+            <Alert onClose={handleAlertClose} severity="warning">
+              Route is blocked! Please choose a different path.
+            </Alert>
+          </Snackbar>
           <Typography variant="h4" textAlign="center" gutterBottom>
             Route Planner with Traffic, Weather, and News Insights
           </Typography>
@@ -525,7 +573,9 @@ const RoutePlanner = () => {
                 />
               </Autocomplete>
             </div>
-            <SwapHorizIcon style={{alignSelf:'center', width:"100px", height:"60px"}}/>
+            <SwapHorizIcon
+              style={{ alignSelf: "center", width: "100px", height: "60px" }}
+            />
             <div>
               <h4>Select End Place</h4>
               <Autocomplete
@@ -565,37 +615,21 @@ const RoutePlanner = () => {
                     }}
                   />
                 ))}
-                {/* {show && (
-              <DirectionsService
-                options={{
-                  destination: endPoint,
-                  origin: startPoint,
-                  travelMode: "DRIVING",
-                }}
-                callback={(response) => {
-                  console.log("response", response);
-                  if (
-                    !checkRouteBlocked(response.routes[0].overview_path) &&
-                    isFirstTime
-                  ) {
-                    directionsCallback(response);
-                    setisFirstTime(false);
-                  } else {
-                    console.warn("Optimal route is blocked!");
-                    fetchBlockedRoutesnew();
-                  }
-                }}
-              />
-            )} */}
+
                 {directions && (
                   <DirectionsRenderer
                     directions={directions}
-                    routeIndex={optimalRouteIndex}
+                    routeIndex={
+                      selectedRouteIndex
+                        ? selectedRouteIndex
+                        : optimalRouteIndex
+                    }
                     options={{
                       polylineOptions: {
                         strokeColor: "#ff0000",
                         strokeWeight: 4,
                       },
+                      // suppressPolylines: selectedRouteIndex !== null, // This will suppress other routes when a specific route is selected
                     }}
                   />
                 )}
@@ -624,7 +658,15 @@ const RoutePlanner = () => {
                     key={index}
                     button
                     selected={optimalRouteIndex === index}
-                    onClick={() => handleRouteSelect(index)}
+                    onClick={() => {
+                      if (
+                        checkRouteBlockedNew(detail.routedata.overview_path)
+                      ) {
+                        setAlertOpen(true);
+                      } else {
+                        handleRouteSelect(index);
+                      }
+                    }}
                   >
                     <ListItemText
                       primary={`Route ${index + 1}`}

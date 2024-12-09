@@ -217,11 +217,20 @@
 
 // export default Dashboard;
 
-
 import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
+import "./Dashboard.css";
 import "leaflet.heat";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faTachometerAlt,
+  faCar,
+  faClock,
+  faRoad,
+  faExclamationCircle,
+  faShieldAlt,
+} from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import {
   AppBar,
@@ -246,7 +255,7 @@ import ArticleIcon from "@mui/icons-material/Article";
 import { styled } from "@mui/system";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
-
+import { Form, Row, Col, Container, Alert, Spinner } from "react-bootstrap";
 const DrawerContent = styled(Box)({
   width: 250,
   padding: "1rem",
@@ -265,7 +274,7 @@ const DashboardContainer = styled(Box)({
 const HeroSection = styled(Box)({
   width: "100%",
   padding: "2rem",
-  background: "linear-gradient(120deg, #89f7fe, #66a6ff)",
+  background: "linear-gradient(120deg, #007bff, #007bff)",
   color: "#fff",
   borderRadius: "16px",
   marginBottom: "2rem",
@@ -299,10 +308,7 @@ const NewsList = styled(Box)({
 });
 const HeatmapLayer = ({ data }) => {
   const map = useMap();
-  const [userData, setuserData] = useState();
-  useEffect(()=>{
-    
-  },[]);
+
   useEffect(() => {
     if (!data.length) return;
 
@@ -326,7 +332,28 @@ const Dashboard = () => {
   const [traffic, setTraffic] = useState(null);
   const [news, setNews] = useState([]);
   const [heatmapData, setHeatmapData] = useState([]);
+  const [trafficData, setTrafficData] = useState(null);
+  const [predictedData, setPredictedData] = useState(null);
+  const [selectedRegion, setSelectedRegion] = useState({
+    name: "Bangalore",
+    latitude: 12.9716,
+    longitude: 77.5946,
+  });
 
+  const [userData, setuserData] = useState();
+  const getUserData = () => {
+    const userData = localStorage.getItem("user");
+    return userData ? JSON.parse(userData) : null;
+  };
+  const [regions] = useState([
+    { name: "Bangalore", latitude: 12.9716, longitude: 77.5946 },
+    { name: "Mumbai", latitude: 19.076, longitude: 72.8777 },
+    { name: "Delhi", latitude: 28.7041, longitude: 77.1025 },
+  ]);
+
+  useEffect(() => {
+    setuserData(getUserData());
+  }, []);
   const navigate = useNavigate();
   useEffect(() => {
     navigator.geolocation.getCurrentPosition((position) => {
@@ -334,6 +361,22 @@ const Dashboard = () => {
       setLocation({ latitude, longitude });
     });
   }, []);
+  function ChangeMapView({ center }) {
+    const map = useMap();
+    map.setView(center, map.getZoom());
+    return null;
+  }
+  const handleRegionChange = async (e) => {
+    const selectedRegion = regions.find(
+      (region) => region.name === e.target.value
+    );
+    if (selectedRegion) {
+      const { name, latitude, longitude } = selectedRegion;
+      setSelectedRegion(selectedRegion);
+      // setFormData({ ...formData, region: name, latitude, longitude });
+      setLocation({ latitude, longitude });
+    }
+  };
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -357,7 +400,7 @@ const Dashboard = () => {
         `https://api.bing.microsoft.com/v7.0/news/search?q=traffic&count=10`,
         {
           headers: {
-            "Ocp-Apim-Subscription-Key": "5d37de4bda40423b8904c2a8fcc2b755",
+            "Ocp-Apim-Subscription-Key": "a14994d42f804c0b974e2f65784cdfb9",
           },
         }
       );
@@ -370,20 +413,157 @@ const Dashboard = () => {
         `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json?point=${latitude},${longitude}&key=5QpZLwcTD1Gz8dJ0O7o1u9vGokfRF1Og`
       );
       console.log(data);
-      const processedData = data?.flowSegmentData?.coordinates?.coordinate?.map((coord) => [
-        coord.latitude,
-        coord.longitude,
-        1, // Weight for heatmap intensity (can be adjusted based on traffic speed)
-      ]);
+      const processedData = data?.flowSegmentData?.coordinates?.coordinate?.map(
+        (coord) => [
+          coord.latitude,
+          coord.longitude,
+          1, // Weight for heatmap intensity (can be adjusted based on traffic speed)
+        ]
+      );
       setHeatmapData(processedData);
     };
+    const generateBBox = (lat, lon, delta = 0.01) => {
+      return `${lon - delta},${lat - delta},${lon + delta},${lat + delta}`;
+    };
 
+    // Fetch Traffic Stats
+    const fetchTrafficStats = async () => {
+      if (!location) return;
+      const { latitude, longitude } = location;
+
+      try {
+        const response = await axios.get(
+          `https://api.tomtom.com/traffic/services/4/flowSegmentData/absolute/10/json`,
+          {
+            params: {
+              point: `${latitude},${longitude}`,
+              key: "5QpZLwcTD1Gz8dJ0O7o1u9vGokfRF1Og",
+            },
+          }
+        );
+
+        const trafficData = response.data.flowSegmentData;
+        console.log("Traffic Data:", trafficData);
+
+        setTrafficData({
+          currentSpeed: trafficData.currentSpeed,
+          freeFlowSpeed: trafficData.freeFlowSpeed,
+          currentTravelTime: trafficData.currentTravelTime,
+          freeFlowTravelTime: trafficData.freeFlowTravelTime,
+          roadClosure: trafficData.roadClosure,
+          confidence: trafficData.confidence,
+        });
+      } catch (error) {
+        console.error("Error fetching traffic stats:", error);
+      }
+    };
     fetchWeather();
     fetchTraffic();
     fetchNews();
     fetchTrafficData();
+    fetchTrafficStats();
   }, [location]);
 
+  useEffect(() => {
+    const fetchPredictions = async () => {
+      const trafficResponse = await axios.get(
+        `https://api.tomtom.com/traffic/services/4/flowSegmentData/relative0/10/json?point=${selectedRegion?.latitude},${selectedRegion?.longitude}&key=5QpZLwcTD1Gz8dJ0O7o1u9vGokfRF1Og`
+      );
+      const response = await axios.post("http://localhost:5000/predict_lstm", {
+        region: selectedRegion?.name,
+        latitude: selectedRegion?.latitude,
+        longitude: selectedRegion?.longitude,
+        currentTrafficData: "100,120,110",
+        weatherData: JSON.stringify({
+          temperature: (weather.main.temp - 273.15).toFixed(2), // Convert Kelvin to Celsius
+          condition: weather.weather[0].description,
+        }),
+        trafficData: JSON.stringify({
+          speed: trafficResponse.data.flowSegmentData.currentSpeed,
+          freeFlowSpeed: trafficResponse.data.flowSegmentData.freeFlowSpeed,
+          congestionLevel: trafficResponse.data.flowSegmentData.confidence,
+        }),
+        news: news.map((item) => item.name),
+        currentTrafficData: [100, 120, 110],
+      });
+
+      const trafficData = trafficResponse.data.flowSegmentData;
+
+      // Calculate the new volumes based on traffic data
+      const adjustedPredictions = Object.entries(predictionData).reduce(
+        (acc, [interval, prediction]) => {
+          // Assuming trafficData.speed and freeFlowSpeed are available for calculation
+          const adjustmentFactor =
+            trafficData.currentSpeed / trafficData.freeFlowSpeed;
+          const updatedVolume = prediction.volume * adjustmentFactor;
+
+          acc[interval] = {
+            ...prediction,
+            volume: updatedVolume, // Adjusted volume based on the current traffic data
+          };
+          return acc;
+        }
+      );
+      console.log(adjustedPredictions);
+      setPredictedData(adjustedPredictions);
+    };
+    if (selectedRegion && weather) {
+      fetchPredictions();
+    }
+  }, [selectedRegion, weather]);
+  const TrafficStatsCard = ({ trafficData }) => {
+    if (!trafficData) return <p>Loading traffic data...</p>;
+
+    const stats = [
+      {
+        icon: faTachometerAlt,
+        label: "Current Speed",
+        value: `${trafficData.currentSpeed} km/h`,
+      },
+      {
+        icon: faCar,
+        label: "Free Flow Speed",
+        value: `${trafficData.freeFlowSpeed} km/h`,
+      },
+      {
+        icon: faClock,
+        label: "Travel Time (Current)",
+        value: `${(trafficData.currentTravelTime / 60).toFixed(2)} mins`,
+      },
+      {
+        icon: faClock,
+        label: "Travel Time (Free Flow)",
+        value: `${(trafficData.freeFlowTravelTime / 60).toFixed(2)} mins`,
+      },
+      {
+        icon: faRoad,
+        label: "Road Closure",
+        value: trafficData.roadClosure ? "Yes" : "No",
+      },
+      {
+        icon: faShieldAlt,
+        label: "Confidence Score",
+        value: trafficData.confidence,
+      },
+    ];
+
+    return (
+      <div className="traffic-grid">
+        <h2>Traffic Statistics</h2>
+        <div className="grid-container">
+          {stats.map((stat, index) => (
+            <div className="grid-item" key={index}>
+              <FontAwesomeIcon icon={stat.icon} className="grid-icon" />
+              <div>
+                <h4>{stat.label}</h4>
+                <p>{stat.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
   return (
     <>
       <AppBar position="static" sx={{ backgroundColor: "#334455" }}>
@@ -402,25 +582,42 @@ const Dashboard = () => {
         </Toolbar>
       </AppBar>
 
-      <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      >
         <DrawerContent>
           <Typography variant="h6">Navigation</Typography>
           <List>
             <ListItem button>
-              <ListItemText primary="Dashboard" onClick={()=>{
-                navigate('/dashboard')
-              }}/>
+              <ListItemText
+                primary="Dashboard"
+                onClick={() => {
+                  navigate("/dashboard");
+                }}
+              />
             </ListItem>
             <ListItem button>
-              <ListItemText primary="Route Plan" onClick={()=>{
-                navigate('/route-plan')
-              }}/>
+              <ListItemText
+                primary="Route Plan"
+                onClick={() => {
+                  navigate("/route-plan");
+                }}
+              />
             </ListItem>
-            <ListItem button>
-              <ListItemText primary="Settings" onClick={()=>{
-                navigate('/block-map')
-              }} />
-            </ListItem>
+            {userData?.userType == "Admin" ? (
+              <ListItem button>
+                <ListItemText
+                  primary="Block Routes"
+                  onClick={() => {
+                    navigate("/block-map");
+                  }}
+                />
+              </ListItem>
+            ) : (
+              <div />
+            )}
           </List>
         </DrawerContent>
       </Drawer>
@@ -429,8 +626,9 @@ const Dashboard = () => {
         <HeroSection>
           <HeroContent>
             <Typography variant="h4">Welcome to TrafficX!</Typography>
-            <Typography style={{padding:5}}>
-              Stay updated with live traffic, weather conditions,get shortest routes, many more and news.
+            <Typography style={{ padding: 5 }}>
+              Stay updated with live traffic, weather conditions,get shortest
+              routes, many more and news.
             </Typography>
             <Button variant="contained" color="secondary" size="large">
               Explore Now
@@ -460,7 +658,9 @@ const Dashboard = () => {
               <TrafficIcon fontSize="large" color="success" />
               <Typography variant="h6">Traffic</Typography>
               <Typography>
-                {traffic ? `${traffic.flowSegmentData.currentSpeed} km/h` : "Loading..."}
+                {traffic
+                  ? `${traffic.flowSegmentData.currentSpeed} km/h`
+                  : "Loading..."}
               </Typography>
             </StyledCard>
           </Grid>
@@ -470,9 +670,22 @@ const Dashboard = () => {
               <Typography variant="h6">Location</Typography>
               <Typography>
                 {location
-                  ? `${location.latitude.toFixed(2)}, ${location.longitude.toFixed(2)}`
+                  ? `${location.latitude.toFixed(
+                      2
+                    )}, ${location.longitude.toFixed(2)}`
                   : "Loading..."}
               </Typography>
+              <Form.Group className="mb-3">
+                <Form.Label style={{ marginRight: 8 }}>Region</Form.Label>
+                <Form.Select onChange={handleRegionChange} required>
+                  <option value="">Select a region</option>
+                  {regions.map((region) => (
+                    <option key={region.name} value={region.name}>
+                      {region.name}
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
             </StyledCard>
           </Grid>
         </Grid>
@@ -501,6 +714,7 @@ const Dashboard = () => {
               zoom={13}
               style={{ height: "100%", borderRadius: "12px" }}
             >
+              <ChangeMapView center={[location.latitude, location.longitude]} />
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; OpenStreetMap contributors"
@@ -512,7 +726,7 @@ const Dashboard = () => {
             </MapContainer>
           </Box>
         )}
-
+        <TrafficStatsCard trafficData={trafficData} />
         <NewsList>
           <Typography variant="h5" sx={{ marginBottom: "1rem" }}>
             Latest News
@@ -541,4 +755,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

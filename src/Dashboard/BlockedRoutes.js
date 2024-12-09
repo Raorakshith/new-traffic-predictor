@@ -20,8 +20,6 @@
 // import { initializeApp } from "firebase/app";
 // import { db } from "../firebase";
 
-
-
 // const containerStyle = {
 //   width: "100%",
 //   height: "600px",
@@ -120,7 +118,7 @@
 //   };
 
 //   // Fetch blocked routes from Firestore
- 
+
 //   return (
 //     <Container>
 //       <Typography variant="h4" textAlign="center" gutterBottom>
@@ -291,21 +289,34 @@ const MapWithAdminControls = () => {
   const [description, setDescription] = useState("");
   const [image, setImage] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const navigate = useNavigate();
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: "AIzaSyD590z__itIHB85Rrz0XJxEpi-PVYPs2b0",
-    libraries: ["places"],
+    libraries: ["places", "geocoding", "maps", "marker","routes","streetView","core","visualization"],
   });
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(collection(db, "blockedRoutes"), (snapshot) => {
-      const routes = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setBlockedRoutes(routes);
-    });
+    const unsubscribe = onSnapshot(
+      collection(db, "blockedRoutes"),
+      (snapshot) => {
+        const routes = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setBlockedRoutes(routes);
+      }
+    );
     return () => unsubscribe();
+  }, []);
+  const [userData, setuserData] = useState();
+  const getUserData = () => {
+    const userData = localStorage.getItem("user");
+    return userData ? JSON.parse(userData) : null;
+  };
+
+  useEffect(() => {
+    setuserData(getUserData());
   }, []);
 
   if (!isLoaded) return <CircularProgress />;
@@ -361,7 +372,7 @@ const MapWithAdminControls = () => {
   };
 
   const openBlockDialog = (route) => {
-    console.log(route)
+    console.log(route);
     setSelectedRoute(route);
     setOpenDialog(true);
   };
@@ -426,174 +437,200 @@ const MapWithAdminControls = () => {
         </Toolbar>
       </AppBar>
 
-      <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+      <Drawer
+        anchor="left"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      >
         <DrawerContent>
           <Typography variant="h6">Navigation</Typography>
           <List>
             <ListItem button>
-              <ListItemText primary="Dashboard" onClick={()=>{
-                navigate('/dashboard')
-              }}/>
+              <ListItemText
+                primary="Dashboard"
+                onClick={() => {
+                  navigate("/dashboard");
+                }}
+              />
             </ListItem>
             <ListItem button>
-              <ListItemText primary="Route Plan" onClick={()=>{
-                navigate('/route-plan')
-              }}/>
+              <ListItemText
+                primary="Route Plan"
+                onClick={() => {
+                  navigate("/route-plan");
+                }}
+              />
             </ListItem>
-            <ListItem button>
-              <ListItemText primary="Settings" onClick={()=>{
-                navigate('/block-map')
-              }} />
-            </ListItem>
+            {userData?.userType == "Admin" ? (
+              <ListItem button>
+                <ListItemText
+                  primary="Block Routes"
+                  onClick={() => {
+                    navigate("/block-map");
+                  }}
+                />
+              </ListItem>
+            ) : (
+              <div />
+            )}
           </List>
         </DrawerContent>
       </Drawer>
 
       <DashboardContainer>
-      <Container>
-      <Typography variant="h4" textAlign="center" gutterBottom>
-        Manage Routes
-      </Typography>
+        <Container>
+          <Typography variant="h4" textAlign="center" gutterBottom>
+            Manage Routes
+          </Typography>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12}>
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={center}
-            zoom={13}
-            onClick={handleMapClick}
-          >
-            {startPoint && <Marker position={startPoint} label="Start" />}
-            {endPoint && <Marker position={endPoint} label="End" />}
-            {directions && (
-              <DirectionsRenderer
-                directions={directions}
-                options={{
-                  suppressMarkers: true,
-                }}
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <GoogleMap
+                mapContainerStyle={containerStyle}
+                center={center}
+                zoom={13}
+                onClick={handleMapClick}
+              >
+                {startPoint && <Marker position={startPoint} label="Start" />}
+                {endPoint && <Marker position={endPoint} label="End" />}
+                {directions && (
+                  <DirectionsRenderer
+                    directions={directions}
+                    options={{
+                      suppressMarkers: true,
+                    }}
+                  />
+                )}
+              </GoogleMap>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                onClick={fetchRoutes}
+                disabled={loading}
+              >
+                {loading ? "Fetching Routes..." : "Show Routes"}
+              </Button>
+            </Grid>
+          </Grid>
+
+          {routeDetails.length > 0 && (
+            <Paper style={{ padding: "10px", marginTop: "20px" }}>
+              <Typography variant="h6">Available Routes:</Typography>
+              <List>
+                {routeDetails.map((route) => (
+                  <ListItem key={route.routeIndex}>
+                    <ListItemText
+                      primary={`Route ${route.routeIndex + 1}: ${
+                        route.distance
+                      }, ${route.duration}`}
+                    />
+                    <Button
+                      variant="contained"
+                      color="secondary"
+                      onClick={() => openBlockDialog(route)}
+                    >
+                      Block Route
+                    </Button>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          )}
+
+          {blockedRoutes.length > 0 && (
+            <Paper style={{ padding: "10px", marginTop: "20px" }}>
+              <Typography variant="h6">Blocked Routes:</Typography>
+              <List>
+                {blockedRoutes.map((route) => (
+                  <ListItem key={route.id}>
+                    <ListItemText
+                      primary={`Route ${route.routeIndex + 1}: ${
+                        route.distance
+                      }, ${route.duration}`}
+                      secondary={
+                        <>
+                          <Typography>Type: {route.blockageType}</Typography>
+                          <Typography>
+                            Description: {route.description}
+                          </Typography>
+                          {route.image && (
+                            <img
+                              src={route.image}
+                              alt={`Blocked route ${route.routeIndex + 1}`}
+                              style={{
+                                width: "100px",
+                                height: "100px",
+                                objectFit: "cover",
+                                marginTop: "10px",
+                              }}
+                            />
+                          )}
+                        </>
+                      }
+                    />
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      onClick={() => unblockRoute(route.id)}
+                    >
+                      Unblock Route
+                    </Button>
+                  </ListItem>
+                ))}
+              </List>
+            </Paper>
+          )}
+
+          {/* Dialog for blocking route */}
+          <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+            <DialogTitle>Block Route</DialogTitle>
+            <DialogContent>
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Blockage Type</InputLabel>
+                <Select
+                  value={blockageType}
+                  onChange={(e) => setBlockageType(e.target.value)}
+                >
+                  <MenuItem value="Road Block">Road Block</MenuItem>
+                  <MenuItem value="Accident">Accident</MenuItem>
+                  <MenuItem value="Flood">Flood</MenuItem>
+                </Select>
+              </FormControl>
+              <TextField
+                label="Description"
+                fullWidth
+                multiline
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                margin="normal"
               />
-            )}
-          </GoogleMap>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            onClick={fetchRoutes}
-            disabled={loading}
-          >
-            {loading ? "Fetching Routes..." : "Show Routes"}
-          </Button>
-        </Grid>
-      </Grid>
-
-      {routeDetails.length > 0 && (
-        <Paper style={{ padding: "10px", marginTop: "20px" }}>
-          <Typography variant="h6">Available Routes:</Typography>
-          <List>
-            {routeDetails.map((route) => (
-              <ListItem key={route.routeIndex}>
-                <ListItemText
-                  primary={`Route ${route.routeIndex + 1}: ${route.distance}, ${route.duration}`}
+              <Button variant="contained" component="label">
+                Upload Image
+                <input
+                  type="file"
+                  hidden
+                  onChange={(e) => setImage(e.target.files[0])}
                 />
-                <Button
-                  variant="contained"
-                  color="secondary"
-                  onClick={() => openBlockDialog(route)}
-                >
-                  Block Route
-                </Button>
-              </ListItem>
-            ))}
-          </List>
-        </Paper>
-      )}
-
-      {blockedRoutes.length > 0 && (
-        <Paper style={{ padding: "10px", marginTop: "20px" }}>
-          <Typography variant="h6">Blocked Routes:</Typography>
-          <List>
-            {blockedRoutes.map((route) => (
-              <ListItem key={route.id}>
-                <ListItemText
-                  primary={`Route ${route.routeIndex + 1}: ${route.distance}, ${route.duration}`}
-                  secondary={
-                    <>
-                      <Typography>Type: {route.blockageType}</Typography>
-                      <Typography>Description: {route.description}</Typography>
-                      {route.image && (
-                        <img
-                          src={route.image}
-                          alt={`Blocked route ${route.routeIndex + 1}`}
-                          style={{
-                            width: "100px",
-                            height: "100px",
-                            objectFit: "cover",
-                            marginTop: "10px",
-                          }}
-                        />
-                      )}
-                    </>
-                  }
-                />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => unblockRoute(route.id)}
-                >
-                  Unblock Route
-                </Button>
-              </ListItem>
-            ))}
-          </List>
-        </Paper>
-      )}
-
-      {/* Dialog for blocking route */}
-      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
-        <DialogTitle>Block Route</DialogTitle>
-        <DialogContent>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Blockage Type</InputLabel>
-            <Select
-              value={blockageType}
-              onChange={(e) => setBlockageType(e.target.value)}
-            >
-              <MenuItem value="Road Block">Road Block</MenuItem>
-              <MenuItem value="Accident">Accident</MenuItem>
-              <MenuItem value="Flood">Flood</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            label="Description"
-            fullWidth
-            multiline
-            rows={3}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            margin="normal"
-          />
-          <Button variant="contained" component="label">
-            Upload Image
-            <input
-              type="file"
-              hidden
-              onChange={(e) => setImage(e.target.files[0])}
-            />
-          </Button>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-          <Button onClick={handleBlockRoute} color="primary" variant="contained">
-            Block
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Container>
+              </Button>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+              <Button
+                onClick={handleBlockRoute}
+                color="primary"
+                variant="contained"
+              >
+                Block
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </Container>
       </DashboardContainer>
     </>
-   
   );
 };
 

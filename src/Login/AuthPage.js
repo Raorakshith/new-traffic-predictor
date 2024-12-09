@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { auth } from "../firebase";
+import { auth, db } from "../firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -8,6 +8,8 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./AuthForm.css";
 import { useNavigate, useNavigation } from "react-router-dom";
+import { doc, setDoc, getDoc } from "firebase/firestore"; // Firestore functions
+
 
 const AuthPage = () => {
   const [isSignup, setIsSignup] = useState(false);
@@ -15,6 +17,8 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [username, setUsername] = useState(""); // For signup username
+
   const navigate = useNavigate();
 
   const toggleForm = () => setIsSignup((prev) => !prev);
@@ -49,13 +53,41 @@ const AuthPage = () => {
     }
     try {
       if (isSignup) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
+        const userRef = doc(db, "TrafficXUsers", user.uid);
+        await setDoc(userRef, {
+          email,
+          username,
+          userType: "user", // Default userType
+        });
         navigate('/dashboard')
         toast.success("Signup successful!");
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        navigate('/dashboard')
-        toast.success("Login successful!");
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password
+        );
+        const user = userCredential.user;
+
+        // Fetch user details from Firestore
+        const userRef = doc(db, "TrafficXUsers", user.uid);
+        console.log('docdetail', user.uid)
+        const userDoc = await getDoc(userRef);
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          // Store user data in localStorage
+          localStorage.setItem("user", JSON.stringify(userData));
+          toast.success("Login successful!");
+          navigate("/dashboard");
+        } else {
+          toast.error("User data not found!");
+        }
       }
     } catch (error) {
       toast.error(error.message);
@@ -78,6 +110,16 @@ const AuthPage = () => {
       <div className="auth-right">
         <form onSubmit={handleSubmit} className="auth-form">
           <h2>{isSignup ? "Sign Up" : "Login"}</h2>
+          {isSignup && (
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              style={{ width: "90%" }}
+            />
+          )}
           <input
             type="email"
             placeholder="Email"

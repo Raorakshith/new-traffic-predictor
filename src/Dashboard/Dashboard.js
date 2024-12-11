@@ -27,6 +27,7 @@ import {
   CardContent,
   Grid,
   Box,
+  Chip,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import WbSunnyIcon from "@mui/icons-material/WbSunny";
@@ -258,11 +259,19 @@ const Dashboard = () => {
       const trafficResponse = await axios.get(
         `https://api.tomtom.com/traffic/services/4/flowSegmentData/relative0/10/json?point=${selectedRegion?.latitude},${selectedRegion?.longitude}&key=5QpZLwcTD1Gz8dJ0O7o1u9vGokfRF1Og`
       );
+      const trafficDataw = trafficResponse.data.flowSegmentData;
+
+    // Generate a `currentTrafficData` array dynamically from the TomTom data
+    // Example: [currentSpeed, freeFlowSpeed, confidence] as mock data points
+    const currentTrafficData = [
+      trafficDataw.currentSpeed,
+      trafficDataw.freeFlowSpeed,
+      Math.round(trafficDataw.confidence * 100), // Convert confidence to percentage
+    ];
       const response = await axios.post("http://localhost:5000/predict_lstm", {
         region: selectedRegion?.name,
         latitude: selectedRegion?.latitude,
         longitude: selectedRegion?.longitude,
-        currentTrafficData: "100,120,110",
         weatherData: JSON.stringify({
           temperature: (weather.main.temp - 273.15).toFixed(2), // Convert Kelvin to Celsius
           condition: weather.weather[0].description,
@@ -273,25 +282,53 @@ const Dashboard = () => {
           congestionLevel: trafficResponse.data.flowSegmentData.confidence,
         }),
         news: news.map((item) => item.name),
-        currentTrafficData: [100, 120, 110],
+        currentTrafficData: currentTrafficData,
       });
 
       const trafficData = trafficResponse.data.flowSegmentData;
 
       // Calculate the new volumes based on traffic data
-      const adjustedPredictions = Object.entries(predictionData).reduce(
-        (acc, [interval, prediction]) => {
-          // Assuming trafficData.speed and freeFlowSpeed are available for calculation
-          const adjustmentFactor =
-            trafficData.currentSpeed / trafficData.freeFlowSpeed;
-          const updatedVolume = prediction.volume * adjustmentFactor;
+      console.log(response.data);
+      // const adjustedPredictions = Object.entries(
+      //   response.data.predictions
+      // ).reduce((acc, [interval, prediction]) => {
+      //   // Assuming trafficData.speed and freeFlowSpeed are available for calculation
+      //   const adjustmentFactor =
+      //     trafficData.currentSpeed / trafficData.freeFlowSpeed;
+      //   const updatedVolume = prediction.volume * adjustmentFactor;
 
+      //   acc[interval] = {
+      //     ...prediction,
+      //     volume: updatedVolume, // Adjusted volume based on the current traffic data
+      //   };
+      //   return acc;
+      // });
+      const adjustedPredictions = Object.entries(response.data.predictions).reduce(
+        (acc, [interval, prediction]) => {
+          // Mock adjustment factor
+          const adjustmentFactor =
+          trafficData.currentSpeed / trafficData.freeFlowSpeed;
+    
+          // Adjust the volume for more realism
+          const timeFactor =
+            interval.includes("hours") ? 1 : interval.includes("days") ? 1.5 : 1;
+          const updatedVolume = Math.fround(
+            prediction.volume * adjustmentFactor * timeFactor
+          ).toFixed(2);
+    
           acc[interval] = {
             ...prediction,
-            volume: updatedVolume, // Adjusted volume based on the current traffic data
+            volume: updatedVolume, // Adjusted volume based on speed and interval
           };
+    
+          // Dynamically adjust category based on volume
+          if (updatedVolume > 120) acc[interval].category = "High";
+          else if (updatedVolume > 60) acc[interval].category = "Medium";
+          else acc[interval].category = "Low";
+    
           return acc;
-        }
+        },
+        {}
       );
       console.log(adjustedPredictions);
       setPredictedData(adjustedPredictions);
@@ -563,42 +600,60 @@ const Dashboard = () => {
             </Card>
           ))}
         </NewsList>
-        {predictedData && (
-          <Row className="mt-4">
-            <Col md={8}>
-              <Card>
-                <h2>Traffic Predictions</h2>
-                <div>
-                  <h3>{predictedData.region} Traffic Analysis</h3>
-
-                  {Object.entries(predictedData.predictions).map(
-                    ([interval, prediction]) => (
-                      <div key={interval} className="mb-3">
-                        <h4>
-                          {interval.replace("_", " ").toUpperCase()} Prediction
-                        </h4>
-                        <p>
-                          <strong>Volume:</strong> {prediction.volume}{" "}
-                          vehicles/hour{" "}
-                          <Badge bg={getBadgeVariant(prediction.category)}>
-                            {prediction.category}
-                          </Badge>
-                        </p>
-                        <p>
+        <Box sx={{ p: 3 }}>
+          {predictedData && (
+            <div>
+              <Typography variant="h4" gutterBottom align="center">
+                Traffic Predictions
+              </Typography>
+              <Grid container spacing={3}>
+                {Object.entries(predictedData).map(([interval, prediction]) => (
+                  <Grid item xs={12} sm={6} md={4} key={interval}>
+                    <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                      <CardContent>
+                        <Typography
+                          variant="h6"
+                          align="center"
+                          gutterBottom
+                          sx={{
+                            textTransform: "uppercase",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {interval.replace("_", " ")} Prediction
+                        </Typography>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            mb: 2,
+                          }}
+                        >
+                          <Chip
+                            label={prediction.category}
+                            color={getBadgeVariant(prediction.category)}
+                            sx={{ fontSize: "0.85rem", fontWeight: "bold" }}
+                          />
+                        </Box>
+                        <Typography variant="body1" gutterBottom>
+                          <strong>Volume:</strong> {prediction.volume}{" k"}
+                          vehicles/hour
+                        </Typography>
+                        <Typography variant="body2" gutterBottom>
                           <strong>Description:</strong> {prediction.description}
-                        </p>
-                        <p>
+                        </Typography>
+                        <Typography variant="body2">
                           <strong>Recommendation:</strong>{" "}
                           {prediction.recommendation}
-                        </p>
-                      </div>
-                    )
-                  )}
-                </div>
-              </Card>
-            </Col>
-          </Row>
-        )}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </div>
+          )}
+        </Box>
       </DashboardContainer>
     </>
   );

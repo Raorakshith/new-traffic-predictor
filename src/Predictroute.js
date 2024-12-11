@@ -25,6 +25,7 @@ import {
   Box,
   Toolbar,
   Snackbar,
+  ListItemIcon,
 } from "@mui/material";
 import {
   getFirestore,
@@ -42,7 +43,9 @@ import MenuIcon from "@mui/icons-material/Menu";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import { db } from "./firebase";
 import MuiAlert from "@mui/material/Alert";
-
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ErrorIcon from "@mui/icons-material/Error";
+import DirectionsIcon from "@mui/icons-material/Directions";
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -427,8 +430,8 @@ const RoutePlanner = () => {
               : blockedPoint.lng;
 
           const isMatch =
-            Math.abs(blockedLat - pointLat) < 0.001 &&
-            Math.abs(blockedLng - pointLng) < 0.001;
+            Math.abs(blockedLat - pointLat) < 0.0005 &&
+            Math.abs(blockedLng - pointLng) < 0.0005;
 
           if (isMatch) {
             console.log("Matching Point Found:", point, blockedPoint);
@@ -628,7 +631,7 @@ const RoutePlanner = () => {
                   />
                 ))}
 
-                {directions && (
+                {directions && selectedRouteIndex && (
                   <DirectionsRenderer
                     directions={directions}
                     routeIndex={
@@ -638,7 +641,7 @@ const RoutePlanner = () => {
                     }
                     options={{
                       polylineOptions: {
-                        strokeColor: "#ff0000",
+                        strokeColor: "#008000",
                         strokeWeight: 4,
                       },
                       // suppressPolylines: selectedRouteIndex !== null, // This will suppress other routes when a specific route is selected
@@ -664,7 +667,7 @@ const RoutePlanner = () => {
           {routeDetails.length > 0 && (
             <Paper style={{ padding: "10px", marginTop: "20px" }}>
               <Typography variant="h6">Route Details:</Typography>
-              <List>
+              {/* <List>
                 {routeDetails.map((detail, index) => (
                   <ListItem
                     key={index}
@@ -696,6 +699,61 @@ const RoutePlanner = () => {
                     />
                   </ListItem>
                 ))}
+              </List> */}
+              <List>
+                {routeDetails.map((detail, index) => {
+                  const isBlocked = checkRouteBlockedNew(
+                    detail.routedata.overview_path
+                  );
+                  const isOptimal = index === optimalRouteIndex;
+
+                  return (
+                    <ListItem
+                      key={index}
+                      button
+                      selected={isOptimal}
+                      onClick={() => {
+                        if (isBlocked) {
+                          setAlertOpen(true);
+                        } else {
+                          handleRouteSelect(index);
+                        }
+                      }}
+                      style={{
+                        border: isOptimal
+                          ? "2px solid #4CAF50"
+                          : "1px solid #e0e0e0",
+                        marginBottom: "10px",
+                        borderRadius: "8px",
+                        backgroundColor: isOptimal ? "#f1f8e9" : "#ffffff",
+                      }}
+                    >
+                      <ListItemIcon>
+                        {isBlocked ? (
+                          <ErrorIcon style={{ color: "#f44336" }} />
+                        ) : isOptimal ? (
+                          <CheckCircleIcon style={{ color: "#4CAF50" }} />
+                        ) : (
+                          <DirectionsIcon style={{ color: "#9e9e9e" }} />
+                        )}
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={`Route ${index + 1} ${
+                          isOptimal ? "(Optimal)" : ""
+                        }`}
+                        secondary={`Distance: ${detail.distance}, Duration: ${
+                          detail.duration
+                        }, Traffic Speed: ${
+                          detail.trafficSpeed
+                        } km/h, Traffic Volume: ${detail.trafficVolume}, ETA: ${
+                          detail.estimatedArrivalTime
+                        }
+                  ${isBlocked ? " (Blocked)" : ""}`}
+                        style={{ color: isBlocked ? "#f44336" : "inherit" }}
+                      />
+                    </ListItem>
+                  );
+                })}
               </List>
             </Paper>
           )}

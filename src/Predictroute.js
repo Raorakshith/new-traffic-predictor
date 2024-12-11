@@ -374,7 +374,7 @@ const RoutePlanner = () => {
   };
 
   const handleRouteSelect = (index) => {
-    setOptimalRouteIndex(index); // Update the selected route index
+    // setOptimalRouteIndex(index); // Update the selected route index
     setSelectedRouteIndex(index);
   };
 
@@ -634,11 +634,7 @@ const RoutePlanner = () => {
                 {directions && selectedRouteIndex && (
                   <DirectionsRenderer
                     directions={directions}
-                    routeIndex={
-                      selectedRouteIndex
-                        ? selectedRouteIndex
-                        : optimalRouteIndex
-                    }
+                    routeIndex={selectedRouteIndex}
                     options={{
                       polylineOptions: {
                         strokeColor: "#008000",
@@ -705,18 +701,18 @@ const RoutePlanner = () => {
                   const isBlocked = checkRouteBlockedNew(
                     detail.routedata.overview_path
                   );
-                  const isOptimal = index === optimalRouteIndex;
+                  const isOptimal = detail?.routeIndex === optimalRouteIndex;
 
                   return (
                     <ListItem
-                      key={index}
+                      key={detail?.routeIndex}
                       button
                       selected={isOptimal}
                       onClick={() => {
                         if (isBlocked) {
                           setAlertOpen(true);
                         } else {
-                          handleRouteSelect(index);
+                          handleRouteSelect(detail?.routeIndex);
                         }
                       }}
                       style={{

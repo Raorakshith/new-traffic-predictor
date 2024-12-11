@@ -302,6 +302,7 @@ const MapWithAdminControls = () => {
       "streetView",
       "core",
       "visualization",
+      "geometry"
     ],
   });
 

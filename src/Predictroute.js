@@ -109,6 +109,7 @@ const RoutePlanner = () => {
       "streetView",
       "core",
       "visualization",
+      "geometry"
     ],
   });
   const handleAlertClose = (event, reason) => {
@@ -640,6 +641,7 @@ const RoutePlanner = () => {
                         strokeColor: "#008000",
                         strokeWeight: 4,
                       },
+
                       // suppressPolylines: selectedRouteIndex !== null, // This will suppress other routes when a specific route is selected
                     }}
                   />
@@ -712,6 +714,7 @@ const RoutePlanner = () => {
                         if (isBlocked) {
                           setAlertOpen(true);
                         } else {
+                          console.log("selectedindex", detail?.routeIndex);
                           handleRouteSelect(detail?.routeIndex);
                         }
                       }}

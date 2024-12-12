@@ -244,16 +244,16 @@ const Dashboard = () => {
           },
         }
       );
-      setNews(data.value.map(
-        (item) => {
+      setNews(
+        data.value.map((item) => {
           return {
             ...item,
             sentimentScore: sentiment.analyze(item.description).score,
             sentimentComparative: sentiment.analyze(item.description)
               .comparative,
           };
-        }
-      ));
+        })
+      );
     };
     const fetchTrafficData = async () => {
       if (!location) return;
@@ -371,11 +371,17 @@ const Dashboard = () => {
           trafficData.currentSpeed / trafficData.freeFlowSpeed;
 
         // Adjust the volume for more realism
-        const timeFactor = interval.includes("hours")
+        const timeFactor = interval.toLowerCase().includes("hour")
           ? 1
-          : interval.includes("days")
+          : interval.toLowerCase().includes("day")
           ? 1.5
-          : 1;
+          : interval.toLowerCase().includes("week")
+          ? 2
+          : interval.toLowerCase().includes("month")
+          ? 2.5
+          : interval.toLowerCase().includes("year")
+          ? 3
+          : 1; // Default value if no match
         const updatedVolume = Math.fround(
           prediction.volume * adjustmentFactor * timeFactor
         ).toFixed(2);

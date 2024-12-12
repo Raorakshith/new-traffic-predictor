@@ -52,7 +52,7 @@ import DirectionsIcon from "@mui/icons-material/Directions";
 import Sentiment from "sentiment";
 import ErrorBoundary from "./ErrorBoundary";
 import Lottie from "lottie-react";
-import aibot from './components/aijson.json';
+import aibot from "./components/aijson.json";
 
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -222,11 +222,17 @@ const RoutePlanner = () => {
           trafficData.currentSpeed / trafficData.freeFlowSpeed;
 
         // Adjust the volume for more realism
-        const timeFactor = interval.includes("hours")
+        const timeFactor = interval.toLowerCase().includes("hour")
           ? 1
-          : interval.includes("days")
+          : interval.toLowerCase().includes("day")
           ? 1.5
-          : 1;
+          : interval.toLowerCase().includes("week")
+          ? 2
+          : interval.toLowerCase().includes("month")
+          ? 2.5
+          : interval.toLowerCase().includes("year")
+          ? 3
+          : 1; // Default value if no match
         const updatedVolume = Math.fround(
           prediction.volume * adjustmentFactor * timeFactor
         ).toFixed(2);

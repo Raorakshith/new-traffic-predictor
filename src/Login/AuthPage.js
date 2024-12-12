@@ -9,7 +9,9 @@ import "react-toastify/dist/ReactToastify.css";
 import "./AuthForm.css";
 import { useNavigate, useNavigation } from "react-router-dom";
 import { doc, setDoc, getDoc } from "firebase/firestore"; // Firestore functions
-
+import Lottie from "lottie-react";
+import vehicleanimation from "../components/vehicles.json";
+import aibot from "../components/aijson.json";
 
 const AuthPage = () => {
   const [isSignup, setIsSignup] = useState(false);
@@ -65,7 +67,7 @@ const AuthPage = () => {
           username,
           userType: "user", // Default userType
         });
-        navigate('/dashboard')
+        navigate("/dashboard");
         toast.success("Signup successful!");
       } else {
         const userCredential = await signInWithEmailAndPassword(
@@ -77,7 +79,7 @@ const AuthPage = () => {
 
         // Fetch user details from Firestore
         const userRef = doc(db, "TrafficXUsers", user.uid);
-        console.log('docdetail', user.uid)
+        console.log("docdetail", user.uid);
         const userDoc = await getDoc(userRef);
         if (userDoc.exists()) {
           const userData = userDoc.data();
@@ -104,12 +106,26 @@ const AuthPage = () => {
     <div className="auth-container">
       <ToastContainer />
       <div className="auth-left">
-        <h1>Welcome to TraffiX</h1>
-        <p>Analyze and predict traffic patterns with the power of AI.</p>
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <h1 className="gradient-text">Welcome to TraffiX </h1>
+          <Lottie
+            animationData={aibot}
+            loop
+            style={{
+              right: 8,
+              top: 8,
+              width: 120,
+              height: 120,
+              left:10
+            }}
+          />
+        </div>
+        <p className="gradient-text-description">Analyze and predict traffic patterns with the power of AI.</p>
+        <Lottie animationData={vehicleanimation} loop />
       </div>
       <div className="auth-right">
         <form onSubmit={handleSubmit} className="auth-form">
-          <h2>{isSignup ? "Sign Up" : "Login"}</h2>
+          <h2 className="gradient-text">{isSignup ? "Sign Up" : "Login"}</h2>
           {isSignup && (
             <input
               type="text"
@@ -126,7 +142,7 @@ const AuthPage = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            style={{width:"90%"}}
+            style={{ width: "90%" }}
           />
           <div className="password-container">
             <input

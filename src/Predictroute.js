@@ -46,6 +46,8 @@ import MuiAlert from "@mui/material/Alert";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import DirectionsIcon from "@mui/icons-material/Directions";
+import Sentiment from "sentiment";
+
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -95,7 +97,7 @@ const RoutePlanner = () => {
   const [autocompleteEnd, setAutocompleteEnd] = useState(null);
   const [alertOpen, setAlertOpen] = useState(false);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(null);
-
+  const sentiment = new Sentiment();
   const navigate = useNavigate();
 
   const { isLoaded } = useJsApiLoader({
@@ -109,7 +111,7 @@ const RoutePlanner = () => {
       "streetView",
       "core",
       "visualization",
-      "geometry"
+      "geometry",
     ],
   });
   const handleAlertClose = (event, reason) => {
@@ -351,7 +353,30 @@ const RoutePlanner = () => {
           headers: { "Ocp-Apim-Subscription-Key": bingNewsApiKey },
         }
       );
-      setNews([...newsResponseStart.data.value, ...newsResponseEnd.data.value]);
+
+      const newsResponseStartSentiment = newsResponseStart.data.value.map(
+        (item) => {
+          return {
+            ...item,
+            sentimentScore: sentiment.analyze(item.description).score,
+            sentimentComparative: sentiment.analyze(item.description)
+              .comparative,
+          };
+        }
+      );
+
+      const newsResponseEndSentiment = newsResponseEnd.data.value.map(
+        (item) => {
+          return {
+            ...item,
+            sentimentScore: sentiment.analyze(item.description).score,
+            sentimentComparative: sentiment.analyze(item.description)
+              .comparative,
+          };
+        }
+      );
+
+      setNews([...newsResponseStartSentiment, ...newsResponseEndSentiment]);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -665,39 +690,7 @@ const RoutePlanner = () => {
           {routeDetails.length > 0 && (
             <Paper style={{ padding: "10px", marginTop: "20px" }}>
               <Typography variant="h6">Route Details:</Typography>
-              {/* <List>
-                {routeDetails.map((detail, index) => (
-                  <ListItem
-                    key={index}
-                    button
-                    selected={optimalRouteIndex === index}
-                    onClick={() => {
-                      if (
-                        checkRouteBlockedNew(detail.routedata.overview_path)
-                      ) {
-                        setAlertOpen(true);
-                      } else {
-                        handleRouteSelect(index);
-                      }
-                    }}
-                  >
-                    <ListItemText
-                      primary={`Route ${index + 1}`}
-                      secondary={`Distance: ${detail.distance}, Duration: ${
-                        detail.duration
-                      }, Traffic Speed: ${
-                        detail.trafficSpeed
-                      } km/h, Traffic Volume: ${detail.trafficVolume}, ETA: ${
-                        detail.estimatedArrivalTime
-                      }, ${
-                        checkRouteBlockedNew(detail.routedata.overview_path)
-                          ? "There is a blockage in this route"
-                          : ""
-                      }`}
-                    />
-                  </ListItem>
-                ))}
-              </List> */}
+
               <List>
                 {routeDetails.map((detail, index) => {
                   const isBlocked = checkRouteBlockedNew(
@@ -863,7 +856,7 @@ const RoutePlanner = () => {
             </Paper>
           )}
 
-          {news.length > 0 && (
+          {/* {news.length > 0 && (
             <Paper style={{ padding: "10px", marginTop: "20px" }}>
               <Typography variant="h6">News Headlines:</Typography>
               <ul>
@@ -878,7 +871,23 @@ const RoutePlanner = () => {
                 ))}
               </ul>
             </Paper>
-          )}
+          )} */}
+          <ul>
+            {news.map((article, index) => (
+              <li key={index}>
+                <div style={{ fontSize: 14, padding: "5px 0" }}>
+                  <strong>{article.name}</strong>
+                  <br />
+                  Sentiment Score: {article.sentimentScore}{" "}
+                  {article.sentimentScore > 0
+                    ? "(Positive)"
+                    : article.sentimentScore < 0
+                    ? "(Negative)"
+                    : "(Neutral)"}
+                </div>
+              </li>
+            ))}
+          </ul>
         </Container>
       </DashboardContainer>
     </>

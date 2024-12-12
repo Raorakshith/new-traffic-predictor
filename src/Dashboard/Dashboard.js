@@ -468,51 +468,115 @@ const Dashboard = () => {
           anchor="left"
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
+          style={{
+            width: "300px",
+            backgroundColor: "#2c3e50", // Dark background for a modern look
+            color: "#ecf0f1", // Light text for contrast
+            padding: "10px",
+          }}
         >
-          <DrawerContent>
-            <Typography variant="h6">Navigation</Typography>
-            <List>
-              <ListItem button>
+          <DrawerContent
+            style={{
+              padding: "20px",
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+            }}
+          >
+            <Typography
+              variant="h6"
+              style={{
+                color: "#5b5b5b",
+                fontWeight: "bold",
+                marginBottom: "20px",
+                textAlign: "center",
+                borderBottom: "1px solid #7f8c8d",
+                paddingBottom: "10px",
+              }}
+            >
+              TraffiX
+            </Typography>
+            <List style={{ flexGrow: 1 }}>
+              <ListItem button style={{ marginBottom: "10px" }}>
                 <ListItemText
                   primary="Dashboard"
+                  primaryTypographyProps={{
+                    style: {
+                      fontSize: "16px",
+                      fontWeight: "500",
+                      color: "#5b5b5b",
+                    },
+                  }}
                   onClick={() => {
                     navigate("/dashboard");
                   }}
                 />
               </ListItem>
-              <ListItem button>
+              <ListItem button style={{ marginBottom: "10px" }}>
                 <ListItemText
                   primary="Route Plan"
+                  primaryTypographyProps={{
+                    style: {
+                      fontSize: "16px",
+                      fontWeight: "500",
+                      color: "#5b5b5b",
+                    },
+                  }}
                   onClick={() => {
                     navigate("/route-plan");
                   }}
                 />
               </ListItem>
-              {userData?.userType == "Admin" ? (
-                <ListItem button>
-                  <ListItemText
-                    primary="Block Routes"
-                    onClick={() => {
-                      navigate("/block-map");
-                    }}
-                  />
-                </ListItem>
-              ) : (
-                <div />
-              )}
-              {userData?.userType == "Admin" ? (
-                <ListItem button>
-                  <ListItemText
-                    primary="Metrics"
-                    onClick={() => {
-                      navigate("/metrics");
-                    }}
-                  />
-                </ListItem>
-              ) : (
-                <div />
+              {userData?.userType === "Admin" && (
+                <>
+                  <ListItem button style={{ marginBottom: "10px" }}>
+                    <ListItemText
+                      primary="Block Routes"
+                      primaryTypographyProps={{
+                        style: {
+                          fontSize: "16px",
+                          fontWeight: "500",
+                          color: "#5b5b5b",
+                        },
+                      }}
+                      onClick={() => {
+                        navigate("/block-map");
+                      }}
+                    />
+                  </ListItem>
+                  <ListItem button style={{ marginBottom: "10px" }}>
+                    <ListItemText
+                      primary="Metrics"
+                      primaryTypographyProps={{
+                        style: {
+                          fontSize: "16px",
+                          fontWeight: "500",
+                          color: "#5b5b5b",
+                        },
+                      }}
+                      onClick={() => {
+                        navigate("/metrics");
+                      }}
+                    />
+                  </ListItem>
+                </>
               )}
             </List>
+            <div
+              style={{
+                textAlign: "center",
+                borderTop: "1px solid #7f8c8d",
+                padding: "10px 0",
+                marginTop: "20px",
+              }}
+            >
+              <Typography
+                variant="caption"
+                style={{ color: "#bdc3c7", fontSize: "12px" }}
+              >
+                © 2024 Traffic Insights
+              </Typography>
+            </div>
           </DrawerContent>
         </Drawer>
 
@@ -558,34 +622,6 @@ const Dashboard = () => {
             </Carousel>
           </div>
 
-          {/* {shouldRender ? (
-            <div
-              style={{
-                margin: "20px auto",
-                textAlign: "center",
-                maxWidth: "800px",
-                fontFamily: "Arial, sans-serif",
-                fontSize: "18px",
-                lineHeight: "1.6",
-              }}
-            >
-              <TypingEffect text={memoizedText} speed={150} />
-            </div>
-          ) : (
-            <div />
-          )} */}
-          {/* <div
-            style={{
-              margin: "20px auto",
-              textAlign: "center",
-              maxWidth: "800px",
-              fontFamily: "Arial, sans-serif",
-              fontSize: "18px",
-              lineHeight: "1.6",
-            }}
-          >
-            <TypingEffect text={paragraph} speed={150} />
-          </div> */}
           <InfoCard userData={userData} />
           <Grid container spacing={3}>
             <Grid item xs={12} sm={4}>
@@ -658,7 +694,7 @@ const Dashboard = () => {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              justifyContent: 'flex-start',
+              justifyContent: "flex-start",
               padding: "20px",
               backgroundColor: "#f5f5f5",
               borderRadius: "10px",
@@ -684,8 +720,9 @@ const Dashboard = () => {
                 margin: "0",
               }}
             >
-              Navigate through {selectedRegion?.name?selectedRegion?.name:""}’s real-time traffic insights to plan
-              your journey efficiently.
+              Navigate through{" "}
+              {selectedRegion?.name ? selectedRegion?.name : ""}’s real-time
+              traffic insights to plan your journey efficiently.
             </p>
           </div>
 

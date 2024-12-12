@@ -525,56 +525,120 @@ const RoutePlanner = () => {
       </AppBar>
 
       <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-      >
-        <DrawerContent>
-          <Typography variant="h6">Navigation</Typography>
-          <List>
-            <ListItem button>
-              <ListItemText
-                primary="Dashboard"
-                onClick={() => {
-                  navigate("/dashboard");
-                }}
-              />
-            </ListItem>
-            <ListItem button>
-              <ListItemText
-                primary="Route Plan"
-                onClick={() => {
-                  navigate("/route-plan");
-                }}
-              />
-            </ListItem>
-            {userData?.userType == "Admin" ? (
-              <ListItem button>
+          anchor="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          style={{
+            width: "300px",
+            backgroundColor: "#2c3e50", // Dark background for a modern look
+            color: "#ecf0f1", // Light text for contrast
+            padding: "10px",
+          }}
+        >
+          <DrawerContent
+            style={{
+              padding: "20px",
+              display: "flex",
+              flexDirection: "column",
+              height: "100%",
+            }}
+          >
+            <Typography
+              variant="h6"
+              style={{
+                color: "#5b5b5b",
+                fontWeight: "bold",
+                marginBottom: "20px",
+                textAlign: "center",
+                borderBottom: "1px solid #7f8c8d",
+                paddingBottom: "10px",
+              }}
+            >
+              TraffiX
+            </Typography>
+            <List style={{ flexGrow: 1 }}>
+              <ListItem button style={{ marginBottom: "10px" }}>
                 <ListItemText
-                  primary="Block Routes"
+                  primary="Dashboard"
+                  primaryTypographyProps={{
+                    style: {
+                      fontSize: "16px",
+                      fontWeight: "500",
+                      color: "#5b5b5b",
+                    },
+                  }}
                   onClick={() => {
-                    navigate("/block-map");
+                    navigate("/dashboard");
                   }}
                 />
               </ListItem>
-            ) : (
-              <div />
-            )}
-            {userData?.userType == "Admin" ? (
-              <ListItem button>
+              <ListItem button style={{ marginBottom: "10px" }}>
                 <ListItemText
-                  primary="Metrics"
+                  primary="Route Plan"
+                  primaryTypographyProps={{
+                    style: {
+                      fontSize: "16px",
+                      fontWeight: "500",
+                      color: "#5b5b5b",
+                    },
+                  }}
                   onClick={() => {
-                    navigate("/metrics");
+                    navigate("/route-plan");
                   }}
                 />
               </ListItem>
-            ) : (
-              <div />
-            )}
-          </List>
-        </DrawerContent>
-      </Drawer>
+              {userData?.userType === "Admin" && (
+                <>
+                  <ListItem button style={{ marginBottom: "10px" }}>
+                    <ListItemText
+                      primary="Block Routes"
+                      primaryTypographyProps={{
+                        style: {
+                          fontSize: "16px",
+                          fontWeight: "500",
+                          color: "#5b5b5b",
+                        },
+                      }}
+                      onClick={() => {
+                        navigate("/block-map");
+                      }}
+                    />
+                  </ListItem>
+                  <ListItem button style={{ marginBottom: "10px" }}>
+                    <ListItemText
+                      primary="Metrics"
+                      primaryTypographyProps={{
+                        style: {
+                          fontSize: "16px",
+                          fontWeight: "500",
+                          color: "#5b5b5b",
+                        },
+                      }}
+                      onClick={() => {
+                        navigate("/metrics");
+                      }}
+                    />
+                  </ListItem>
+                </>
+              )}
+            </List>
+            <div
+              style={{
+                textAlign: "center",
+                borderTop: "1px solid #7f8c8d",
+                padding: "10px 0",
+                marginTop: "20px",
+              }}
+            >
+              <Typography
+                variant="caption"
+                style={{ color: "#bdc3c7", fontSize: "12px" }}
+              >
+                © 2024 Traffic Insights
+              </Typography>
+            </div>
+          </DrawerContent>
+        </Drawer>
 
       <DashboardContainer>
         <Container>

@@ -862,74 +862,58 @@ const Dashboard = () => {
                 <Typography variant="h4" gutterBottom align="center">
                   Traffic Predictions
                 </Typography>
-                <Box sx={{ padding: "2rem" }}>
-                  <Grid container rowSpacing={4} columnSpacing={4}>
-                    {news.map((article, index) => (
-                      <Grid item xs={12} sm={6} md={4} key={index}>
-                        <Card
-                          sx={{
-                            padding: "1rem",
-                            backgroundColor: "#f9f9f9",
-                            borderRadius: "8px",
-                            boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-                            transition:
-                              "transform 0.3s ease, box-shadow 0.3s ease",
-                            display: "flex",
-                            flexDirection: "column",
-                            justifyContent: "center",
-                            height: "98%",
-                            border: "2px solid",
-                            borderLeftColor:
-                              "linear-gradient(45deg, #ff7e5f, #feb47b) 1",
-                            "&:hover": {
-                              transform: "scale(1.05)",
-                              boxShadow: "0 6px 15px rgba(0, 0, 0, 0.2)",
-                            },
-                          }}
-                        >
-                          <Typography variant="subtitle1" gutterBottom>
-                            {article.name}
-                          </Typography>
-
-                          <Typography
-                            variant="subtitle2"
-                            color="textSecondary"
-                            gutterBottom
-                          >
-                            {article.description}
-                          </Typography>
-
-                          {/* New Typography element */}
-                          <Typography variant="body2" color="textSecondary">
-                            {article.additionalInfo}
-                          </Typography>
-
-                          <Button
-                            variant="contained"
-                            color="primary"
-                            href={article.url}
-                            target="_blank"
-                            sx={{
-                              marginTop: "1rem",
-                              textTransform: "none",
-                              borderRadius: "20px",
-                              padding: "0.5rem 1.5rem",
-                              background:
-                                "linear-gradient(45deg, #6a11cb, #2575fc)",
-                              color: "#fff",
-                              "&:hover": {
-                                background:
-                                  "linear-gradient(45deg, #2575fc, #6a11cb)",
-                              },
-                            }}
-                          >
-                            Read More
-                          </Button>
-                        </Card>
-                      </Grid>
-                    ))}
+                <Grid container spacing={3}>
+                    {Object.entries(predictedData).map(
+                      ([interval, prediction]) => (
+                        <Grid item xs={12} sm={6} md={4} key={interval}>
+                          <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                            <CardContent>
+                              <Typography
+                                variant="h6"
+                                align="center"
+                                gutterBottom
+                                sx={{
+                                  textTransform: "uppercase",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                {interval.replace("_", " ")} Prediction
+                              </Typography>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  mb: 2,
+                                }}
+                              >
+                                <Chip
+                                  label={prediction.category}
+                                  color={getBadgeVariant(prediction.category)}
+                                  sx={{
+                                    fontSize: "0.85rem",
+                                    fontWeight: "bold",
+                                  }}
+                                />
+                              </Box>
+                              <Typography variant="body1" gutterBottom>
+                                <strong>Volume:</strong> {prediction.volume}
+                                {" k"}
+                                vehicles/hour
+                              </Typography>
+                              <Typography variant="body2" gutterBottom>
+                                <strong>Description:</strong>{" "}
+                                {prediction.description}
+                              </Typography>
+                              <Typography variant="body2">
+                                <strong>Recommendation:</strong>{" "}
+                                {prediction.recommendation}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      )
+                    )}
                   </Grid>
-                </Box>
               </div>
             )}
           </Box>

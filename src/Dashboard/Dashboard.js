@@ -114,7 +114,8 @@ const HeroContent = styled(Box)({
 });
 
 const StyledCard = styled(Card)({
-  backgroundColor: "#ffffff",
+  backgroundColor: "#fff  ",
+
   borderRadius: "12px",
   boxShadow: "0px 6px 20px rgba(0, 0, 0, 0.1)",
   padding: "1.5rem",
@@ -123,11 +124,18 @@ const StyledCard = styled(Card)({
     transform: "scale(1.05)",
   },
   textAlign: "center",
+  border: "1px solid orange",
+  height: 150,
 });
 
 const NewsList = styled(Box)({
-  width: "100%",
+  width: "99.5%",
   marginTop: "2rem",
+  border: "1px solid orange",
+  borderRadius: 16,
+  background:
+    "linear-gradient(45deg, rgba(106,17,203,0.2),rgba(37,117,252,0.2));",
+  height: "100%",
 });
 const HeatmapLayer = ({ data }) => {
   const map = useMap();
@@ -416,8 +424,29 @@ const Dashboard = () => {
     ];
 
     return (
-      <div className="traffic-grid">
-        <h2>Traffic Statistics</h2>
+      <Card
+        className="traffic-grid"
+        elevation={5}
+        sx={{
+          padding: "20px",
+          borderRadius: "10px",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          width: "96.5%",
+          margin: "auto",
+          marginTop: "15px",
+          border: "1px solid orange",
+          backgroundImage:
+            "linear-gradient(45deg, rgba(106,17,203,0.2),rgba(37,117,252,0.2))",
+        }}
+      >
+        <Typography
+          variant="h4"
+          textAlign="center"
+          sx={{ mb: 3 }}
+          fontWeight="400"
+        >
+          Traffic Statistics
+        </Typography>
         <div className="grid-container">
           {stats.map((stat, index) => (
             <div className="grid-item" key={index}>
@@ -429,7 +458,7 @@ const Dashboard = () => {
             </div>
           ))}
         </div>
-      </div>
+      </Card>
     );
   };
   const getBadgeVariant = (category) => {
@@ -587,6 +616,7 @@ const Dashboard = () => {
               maxHeight: "500px",
               overflow: "hidden",
               marginBottom: 20,
+              background: "linear-gradient(45deg, #6a11cb, #2575fc)",
             }}
           >
             <Carousel
@@ -600,21 +630,21 @@ const Dashboard = () => {
             >
               <div>
                 <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeyDJNQbuEATQ_ifsd4FsDbtv-VERlGCOkyQ&s"
+                  src="https://www.shutterstock.com/shutterstock/photos/1815836900/display_1500/stock-photo-san-diego-california-usa-jan-emergency-auto-on-busy-intercity-freeway-paramedic-1815836900.jpg"
                   alt="Slide 1"
                   style={{ objectFit: "cover", height: "500px", width: "100%" }}
                 />
               </div>
               <div>
                 <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZ4K0Nobh_mYQkJghY-ttK7EoHDFt8pPmvmg&s"
+                  src="https://www.shutterstock.com/shutterstock/photos/2448609629/display_1500/stock-photo--new-york-usa-traffic-jam-on-the-brooklyn-queens-expressway-interstate-it-was-2448609629.jpg"
                   alt="Slide 2"
                   style={{ objectFit: "cover", height: "500px", width: "100%" }}
                 />
               </div>
               <div>
                 <img
-                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6NazUK01ok4xX4yP_HYsAggTZyWLU8xOw7g&s"
+                  src="https://www.shutterstock.com/shutterstock/photos/2448580065/display_1500/stock-photo--new-york-usa-traffic-jam-on-the-brooklyn-queens-expressway-interstate-it-was-2448580065.jpg"
                   alt="Slide 3"
                   style={{ objectFit: "cover", height: "500px", width: "100%" }}
                 />
@@ -625,8 +655,10 @@ const Dashboard = () => {
           <InfoCard userData={userData} />
           <Grid container spacing={3}>
             <Grid item xs={12} sm={4}>
-              <StyledCard>
-                <WbSunnyIcon fontSize="large" color="warning" />
+              <StyledCard
+                style={{ backgroundColor: "rgba(242, 121, 53, 0.7)" }}
+              >
+                <WbSunnyIcon fontSize="large" sx={{ color: "#EC5800" }} />
                 <Typography variant="h6">Weather</Typography>
                 <Typography>
                   {weather
@@ -636,7 +668,9 @@ const Dashboard = () => {
               </StyledCard>
             </Grid>
             <Grid item xs={12} sm={4}>
-              <StyledCard>
+              <StyledCard
+                style={{ backgroundColor: "rgba(135, 211, 124, 0.7" }}
+              >
                 <TrafficIcon fontSize="large" color="success" />
                 <Typography variant="h6">Traffic</Typography>
                 <Typography>
@@ -647,8 +681,11 @@ const Dashboard = () => {
               </StyledCard>
             </Grid>
             <Grid item xs={12} sm={4}>
-              <StyledCard>
-                <LocationOnIcon fontSize="large" color="info" />
+              <StyledCard
+                style={{ backgroundColor: "rgba(135, 206, 235, 0.7" }}
+              >
+                {/* 135, 206, 235 */}
+                <LocationOnIcon fontSize="large" color="primary" />
                 <Typography variant="h6">Current Location</Typography>
                 <Typography>
                   {location
@@ -697,14 +734,19 @@ const Dashboard = () => {
               justifyContent: "flex-start",
               padding: "20px",
               backgroundColor: "#f5f5f5",
+              "background-image":
+                "linear-gradient(45deg, rgba(106,17,203,0.3),rgba(37,117,252,0.3))",
+
               borderRadius: "10px",
               boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
               margin: "10px 0",
+              border: "1px,solid orange",
+              width: "96.5%",
             }}
           >
             <h2
               style={{
-                fontSize: "24px",
+                // fontSize: "24px",
                 fontWeight: "bold",
                 color: "#2c3e50",
                 margin: "0 0 10px",
@@ -715,7 +757,7 @@ const Dashboard = () => {
             <p
               style={{
                 fontSize: "16px",
-                color: "#7f8c8d",
+                color: "rgba(0,0,0,0.8)",
                 textAlign: "center",
                 margin: "0",
               }}
@@ -749,82 +791,145 @@ const Dashboard = () => {
           )}
           <TrafficStatsCard trafficData={trafficData} />
           <NewsList>
-            <Typography variant="h5" sx={{ marginBottom: "1rem" }}>
+            <Typography
+              variant="h4"
+              sx={{ marginBottom: "1rem" }}
+              textAlign="center"
+            >
               Latest News
             </Typography>
-            {news.map((article, index) => (
-              <Card
-                key={index}
-                sx={{
-                  marginBottom: "1rem",
-                  padding: "1rem",
-                  backgroundColor: "#fff",
-                  borderRadius: "8px",
-                }}
-              >
-                <Typography variant="h6">{article.name}</Typography>
-                <Typography>{article.description}</Typography>
-                <Button href={article.url} target="_blank">
-                  Read More
-                </Button>
-              </Card>
-            ))}
+            <Box sx={{ padding: "2rem" }}>
+              <Grid container spacing={3}>
+                {news.map((article, index) => (
+                  <Grid item xs={12} sm={6} md={4} key={index}>
+                    <Card
+                      sx={{
+                        padding: "1.5rem",
+                        backgroundColor: "#fff",
+                        borderRadius: "8px",
+                        boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+                        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        height: "100%",
+                        "&:hover": {
+                          transform: "scale(1.05)",
+                          boxShadow: "0 6px 15px rgba(0, 0, 0, 0.2)",
+                        },
+                      }}
+                    >
+                      <Typography variant="h6" gutterBottom>
+                        {article.name}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        gutterBottom
+                      >
+                        {article.description}
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        href={article.url}
+                        target="_blank"
+                        sx={{
+                          marginTop: "1rem",
+                          textTransform: "none",
+                          borderRadius: "20px",
+                          padding: "0.5rem 1.5rem",
+                          background:
+                            "linear-gradient(45deg, #6a11cb, #2575fc)",
+                          color: "#fff",
+                          "&:hover": {
+                            background:
+                              "linear-gradient(45deg, #2575fc, #6a11cb)",
+                          },
+                        }}
+                      >
+                        Read More
+                      </Button>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
           </NewsList>
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ p: 3, boxShadow: "#eee" }}>
             {predictedData && (
               <div>
                 <Typography variant="h4" gutterBottom align="center">
                   Traffic Predictions
                 </Typography>
-                <Grid container spacing={3}>
-                  {Object.entries(predictedData).map(
-                    ([interval, prediction]) => (
-                      <Grid item xs={12} sm={6} md={4} key={interval}>
-                        <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                          <CardContent>
-                            <Typography
-                              variant="h6"
-                              align="center"
-                              gutterBottom
-                              sx={{
-                                textTransform: "uppercase",
-                                fontWeight: "bold",
-                              }}
-                            >
-                              {interval.replace("_", " ")} Prediction
-                            </Typography>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                justifyContent: "center",
-                                mb: 2,
-                              }}
-                            >
-                              <Chip
-                                label={prediction.category}
-                                color={getBadgeVariant(prediction.category)}
-                                sx={{ fontSize: "0.85rem", fontWeight: "bold" }}
-                              />
-                            </Box>
-                            <Typography variant="body1" gutterBottom>
-                              <strong>Volume:</strong> {prediction.volume}
-                              {" k"}
-                              vehicles/hour
-                            </Typography>
-                            <Typography variant="body2" gutterBottom>
-                              <strong>Description:</strong>{" "}
-                              {prediction.description}
-                            </Typography>
-                            <Typography variant="body2">
-                              <strong>Recommendation:</strong>{" "}
-                              {prediction.recommendation}
-                            </Typography>
-                          </CardContent>
+                <Box sx={{ padding: "2rem" }}>
+                  <Grid container rowSpacing={4} columnSpacing={4}>
+                    {news.map((article, index) => (
+                      <Grid item xs={12} sm={6} md={4} key={index}>
+                        <Card
+                          sx={{
+                            padding: "1rem",
+                            backgroundColor: "#f9f9f9",
+                            borderRadius: "8px",
+                            boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
+                            transition:
+                              "transform 0.3s ease, box-shadow 0.3s ease",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "center",
+                            height: "98%",
+                            border: "2px solid",
+                            borderLeftColor:
+                              "linear-gradient(45deg, #ff7e5f, #feb47b) 1",
+                            "&:hover": {
+                              transform: "scale(1.05)",
+                              boxShadow: "0 6px 15px rgba(0, 0, 0, 0.2)",
+                            },
+                          }}
+                        >
+                          <Typography variant="subtitle1" gutterBottom>
+                            {article.name}
+                          </Typography>
+
+                          <Typography
+                            variant="subtitle2"
+                            color="textSecondary"
+                            gutterBottom
+                          >
+                            {article.description}
+                          </Typography>
+
+                          {/* New Typography element */}
+                          <Typography variant="body2" color="textSecondary">
+                            {article.additionalInfo}
+                          </Typography>
+
+                          <Button
+                            variant="contained"
+                            color="primary"
+                            href={article.url}
+                            target="_blank"
+                            sx={{
+                              marginTop: "1rem",
+                              textTransform: "none",
+                              borderRadius: "20px",
+                              padding: "0.5rem 1.5rem",
+                              background:
+                                "linear-gradient(45deg, #6a11cb, #2575fc)",
+                              color: "#fff",
+                              "&:hover": {
+                                background:
+                                  "linear-gradient(45deg, #2575fc, #6a11cb)",
+                              },
+                            }}
+                          >
+                            Read More
+                          </Button>
                         </Card>
                       </Grid>
-                    )
-                  )}
-                </Grid>
+                    ))}
+                  </Grid>
+                </Box>
               </div>
             )}
           </Box>

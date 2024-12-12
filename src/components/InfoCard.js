@@ -14,6 +14,7 @@ const InfoCard = ({userData}) => {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "flex-start",
+              borderRadius:8
             }}
           >
             <Lottie
@@ -22,7 +23,7 @@ const InfoCard = ({userData}) => {
               style={{
                 width: 80,
                 height: 80,
-                marginRight: 10, // Add spacing between Lottie and the text
+                marginRight: 10,breakBefore:8 // Add spacing between Lottie and the text
               }}
             />
             <h1 className="gradient-text" style={{ margin: 0 }}>

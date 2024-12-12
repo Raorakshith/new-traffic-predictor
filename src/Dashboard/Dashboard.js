@@ -58,6 +58,7 @@ import Typist from "react-typist";
 import "react-typist/dist/Typist.css";
 import TypingEffect from "../components/TextTyping";
 import InfoCard from "../components/InfoCard";
+import Sentiment from "sentiment";
 
 const MyCollection = [
   {
@@ -165,6 +166,8 @@ const Dashboard = () => {
   const [heatmapData, setHeatmapData] = useState([]);
   const [trafficData, setTrafficData] = useState(null);
   const [predictedData, setPredictedData] = useState(null);
+  const sentiment = new Sentiment();
+
   const [selectedRegion, setSelectedRegion] = useState({
     name: "Bangalore",
     latitude: 12.9716,
@@ -241,7 +244,16 @@ const Dashboard = () => {
           },
         }
       );
-      setNews(data.value);
+      setNews(data.value.map(
+        (item) => {
+          return {
+            ...item,
+            sentimentScore: sentiment.analyze(item.description).score,
+            sentimentComparative: sentiment.analyze(item.description)
+              .comparative,
+          };
+        }
+      ));
     };
     const fetchTrafficData = async () => {
       if (!location) return;
@@ -829,6 +841,18 @@ const Dashboard = () => {
                       >
                         {article.description}
                       </Typography>
+                      <Typography
+                        variant="body2"
+                        color="textSecondary"
+                        gutterBottom
+                      >
+                        Sentiment Score: {article.sentimentScore}{" "}
+                        {article.sentimentScore > 0
+                          ? "(Positive)"
+                          : article.sentimentScore < 0
+                          ? "(Negative)"
+                          : "(Neutral)"}
+                      </Typography>
                       <Button
                         variant="contained"
                         color="primary"
@@ -859,61 +883,72 @@ const Dashboard = () => {
           <Box sx={{ p: 3, boxShadow: "#eee" }}>
             {predictedData && (
               <div>
-                <Typography variant="h4" gutterBottom align="center">
-                  Traffic Predictions
-                </Typography>
+                <div style={{ display: "flex", flexDirection: "row" }}>
+                  <h1 className="gradient-text">Traffic Predictions </h1>
+                  <Lottie
+                    animationData={aibot}
+                    loop
+                    style={{
+                      right: 6,
+                      top: 6,
+                      width: 60,
+                      height: 60,
+                      left: 10,
+                    }}
+                  />
+                </div>
                 <Grid container spacing={3}>
-                    {Object.entries(predictedData).map(
-                      ([interval, prediction]) => (
-                        <Grid item xs={12} sm={6} md={4} key={interval}>
-                          <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                            <CardContent>
-                              <Typography
-                                variant="h6"
-                                align="center"
-                                gutterBottom
+                  {Object.entries(predictedData).map(
+                    ([interval, prediction]) => (
+                      <Grid item xs={12} sm={6} md={4} key={interval}>
+                        <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                          <CardContent>
+                            <Typography
+                              variant="h6"
+                              align="center"
+                              gutterBottom
+                              sx={{
+                                textTransform: "uppercase",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {interval.replace("_", " ")} Prediction
+                            </Typography>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                mb: 2,
+                              }}
+                            >
+                              <Chip
+                                label={prediction.category}
+                                color={getBadgeVariant(prediction.category)}
                                 sx={{
-                                  textTransform: "uppercase",
+                                  fontSize: "0.85rem",
                                   fontWeight: "bold",
                                 }}
-                              >
-                                {interval.replace("_", " ")} Prediction
-                              </Typography>
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                  mb: 2,
-                                }}
-                              >
-                                <Chip
-                                  label={prediction.category}
-                                  color={getBadgeVariant(prediction.category)}
-                                  sx={{
-                                    fontSize: "0.85rem",
-                                    fontWeight: "bold",
-                                  }}
-                                />
-                              </Box>
-                              <Typography variant="body1" gutterBottom>
-                                <strong>Volume:</strong> {prediction.volume}
-                                {" k"}
-                                vehicles/hour
-                              </Typography>
-                              <Typography variant="body2" gutterBottom>
-                                <strong>Description:</strong>{" "}
-                                {prediction.description}
-                              </Typography>
-                              <Typography variant="body2">
-                                <strong>Recommendation:</strong>{" "}
-                                {prediction.recommendation}
-                              </Typography>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      )
-                    )}
-                  </Grid>
+                              />
+                            </Box>
+                            <Typography variant="body1" gutterBottom>
+                              <strong>Volume:</strong> {prediction.volume}
+                              {" k"}
+                              vehicles/hour
+                            </Typography>
+                            <Typography variant="body2" gutterBottom>
+                              <strong>Description:</strong>{" "}
+                              {prediction.description}
+                            </Typography>
+                            <Typography variant="body2">
+                              <strong>Recommendation:</strong>{" "}
+                              {prediction.recommendation}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    )
+                  )}
+                </Grid>
               </div>
             )}
           </Box>

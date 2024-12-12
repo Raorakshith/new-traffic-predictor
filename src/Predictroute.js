@@ -51,6 +51,9 @@ import ErrorIcon from "@mui/icons-material/Error";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import Sentiment from "sentiment";
 import ErrorBoundary from "./ErrorBoundary";
+import Lottie from "lottie-react";
+import aibot from './components/aijson.json';
+
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -591,7 +594,7 @@ const RoutePlanner = () => {
       }
     }
   };
-  
+
   return (
     <ErrorBoundary>
       <>
@@ -1083,9 +1086,20 @@ const RoutePlanner = () => {
             <Box sx={{ p: 3 }}>
               {predictedData && (
                 <div>
-                  <Typography variant="h4" gutterBottom align="center">
-                    Traffic Predictions
-                  </Typography>
+                  <div style={{ display: "flex", flexDirection: "row" }}>
+                    <h1 className="gradient-text">Traffic Predictions </h1>
+                    <Lottie
+                      animationData={aibot}
+                      loop
+                      style={{
+                        right: 6,
+                        top: 6,
+                        width: 60,
+                        height: 60,
+                        left: 10,
+                      }}
+                    />
+                  </div>
                   <Grid container spacing={3}>
                     {Object.entries(predictedData).map(
                       ([interval, prediction]) => (
@@ -1144,7 +1158,7 @@ const RoutePlanner = () => {
           </Container>
         </DashboardContainer>
       </>
-     </ErrorBoundary>
+    </ErrorBoundary>
   );
 };
 

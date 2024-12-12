@@ -47,7 +47,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import Sentiment from "sentiment";
-import ErrorBoundary from './ErrorBoundary'
+import ErrorBoundary from "./ErrorBoundary";
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -507,24 +507,24 @@ const RoutePlanner = () => {
 
   return (
     <ErrorBoundary>
-    <>
-      <AppBar position="static" sx={{ backgroundColor: "#334455" }}>
-        <Toolbar>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Traffix Route Planner
-          </Typography>
-        </Toolbar>
-      </AppBar>
+      <>
+        <AppBar position="static" sx={{ backgroundColor: "#334455" }}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ flexGrow: 1 }}>
+              Traffix Route Planner
+            </Typography>
+          </Toolbar>
+        </AppBar>
 
-      <Drawer
+        <Drawer
           anchor="left"
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
@@ -640,107 +640,113 @@ const RoutePlanner = () => {
           </DrawerContent>
         </Drawer>
 
-      <DashboardContainer>
-        <Container>
-          <Snackbar
-            open={alertOpen}
-            autoHideDuration={3000} // Alert will disappear after 3 seconds
-            onClose={handleAlertClose}
-            anchorOrigin={{ vertical: "top", horizontal: "center" }} // Position of the alert
-          >
-            <Alert onClose={handleAlertClose} severity="warning">
-              Route is blocked! Please choose a different path.
-            </Alert>
-          </Snackbar>
-          <Typography variant="h4" textAlign="center" gutterBottom>
+        <DashboardContainer>
+          <Container>
+            <Snackbar
+              open={alertOpen}
+              autoHideDuration={3000} // Alert will disappear after 3 seconds
+              onClose={handleAlertClose}
+              anchorOrigin={{ vertical: "top", horizontal: "center" }} // Position of the alert
+            >
+              <Alert onClose={handleAlertClose} severity="warning">
+                Route is blocked! Please choose a different path.
+              </Alert>
+            </Snackbar>
+            {/* <Typography variant="h4" textAlign="center" gutterBottom>
             Route Planner with Traffic, Weather, and News Insights
-          </Typography>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
-            }}
-          >
-            <div>
-              <h4>Select Start Place</h4>
-              <Autocomplete
-                onLoad={(autoC) => setAutocompleteStart(autoC)}
-                onPlaceChanged={handleStartPlaceSelected}
-              >
-                <input
-                  type="text"
-                  placeholder="Search for a start place"
-                  style={{
-                    width: "300px",
-                    padding: "10px",
-                    marginBottom: "10px",
-                  }}
-                />
-              </Autocomplete>
-            </div>
-            <SwapHorizIcon
-              style={{ alignSelf: "center", width: "100px", height: "60px" }}
-            />
-            <div>
-              <h4>Select End Place</h4>
-              <Autocomplete
-                onLoad={(autoC) => setAutocompleteEnd(autoC)}
-                onPlaceChanged={handleEndPlaceSelected}
-              >
-                <input
-                  type="text"
-                  placeholder="Search for an end place"
-                  style={{
-                    width: "300px",
-                    padding: "10px",
-                    marginBottom: "10px",
-                  }}
-                />
-              </Autocomplete>
-            </div>
-          </div>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <GoogleMap
-                mapContainerStyle={containerStyle}
-                center={center}
-                zoom={13}
-                onClick={handleMapClick}
-              >
-                {startPoint && <Marker position={startPoint} label="Start" />}
-                {endPoint && <Marker position={endPoint} label="End" />}
-                {blockedRoutes.map((route, index) => (
-                  <Polyline
-                    key={index}
-                    path={route}
-                    options={{
-                      strokeColor: "black",
-                      strokeOpacity: 0.8,
-                      strokeWeight: 4,
+          </Typography> */}
+            <h1
+              className="gradient-text"
+              style={{ margin: 0, alignSelf: "center", textAlign: "center" }}
+            >
+              Route Planner with Traffic, Weather, and News Insights
+            </h1>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
+            >
+              <div>
+                <h4>Select Start Place</h4>
+                <Autocomplete
+                  onLoad={(autoC) => setAutocompleteStart(autoC)}
+                  onPlaceChanged={handleStartPlaceSelected}
+                >
+                  <input
+                    type="text"
+                    placeholder="Search for a start place"
+                    style={{
+                      width: "300px",
+                      padding: "10px",
+                      marginBottom: "10px",
                     }}
                   />
-                ))}
-
-                {directions && selectedRouteIndex && (
-                  <DirectionsRenderer
-                    directions={directions}
-                    routeIndex={selectedRouteIndex}
-                    options={{
-                      polylineOptions: {
-                        strokeColor: "#008000",
+                </Autocomplete>
+              </div>
+              <SwapHorizIcon
+                style={{ alignSelf: "center", width: "100px", height: "60px" }}
+              />
+              <div>
+                <h4>Select End Place</h4>
+                <Autocomplete
+                  onLoad={(autoC) => setAutocompleteEnd(autoC)}
+                  onPlaceChanged={handleEndPlaceSelected}
+                >
+                  <input
+                    type="text"
+                    placeholder="Search for an end place"
+                    style={{
+                      width: "300px",
+                      padding: "10px",
+                      marginBottom: "10px",
+                    }}
+                  />
+                </Autocomplete>
+              </div>
+            </div>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <GoogleMap
+                  mapContainerStyle={containerStyle}
+                  center={center}
+                  zoom={13}
+                  onClick={handleMapClick}
+                >
+                  {startPoint && <Marker position={startPoint} label="Start" />}
+                  {endPoint && <Marker position={endPoint} label="End" />}
+                  {blockedRoutes.map((route, index) => (
+                    <Polyline
+                      key={index}
+                      path={route}
+                      options={{
+                        strokeColor: "black",
+                        strokeOpacity: 0.8,
                         strokeWeight: 4,
-                      },
+                      }}
+                    />
+                  ))}
 
-                      // suppressPolylines: selectedRouteIndex !== null, // This will suppress other routes when a specific route is selected
-                    }}
-                  />
-                )}
-                {trafficVisible && <TrafficLayer />}
-              </GoogleMap>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Button
+                  {directions && selectedRouteIndex && (
+                    <DirectionsRenderer
+                      directions={directions}
+                      routeIndex={selectedRouteIndex}
+                      options={{
+                        polylineOptions: {
+                          strokeColor: "#008000",
+                          strokeWeight: 4,
+                        },
+
+                        // suppressPolylines: selectedRouteIndex !== null, // This will suppress other routes when a specific route is selected
+                      }}
+                    />
+                  )}
+                  {trafficVisible && <TrafficLayer />}
+                </GoogleMap>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                {/* <Button
                 variant="contained"
                 color="primary"
                 fullWidth
@@ -748,214 +754,249 @@ const RoutePlanner = () => {
                 disabled={loading}
               >
                 {loading ? "Calculating Routes..." : "Fetch Optimal Routes"}
-              </Button>
-            </Grid>
-          </Grid>
-
-          {routeDetails.length > 0 && (
-            <Paper style={{ padding: "10px", marginTop: "20px" }}>
-              <Typography variant="h6">Route Details:</Typography>
-
-              <List>
-                {routeDetails.map((detail, index) => {
-                  const isBlocked = checkRouteBlockedNew(
-                    detail.routedata.overview_path
-                  );
-                  const isOptimal = detail?.routeIndex === optimalRouteIndex;
-
-                  return (
-                    <ListItem
-                      key={detail?.routeIndex}
-                      button
-                      selected={isOptimal}
-                      onClick={() => {
-                        if (isBlocked) {
-                          setAlertOpen(true);
-                        } else {
-                          console.log("selectedindex", detail?.routeIndex);
-                          handleRouteSelect(detail?.routeIndex);
-                        }
-                      }}
+              </Button> */}
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={fetchRoutes}
+                  disabled={loading}
+                  style={{
+                    background: loading
+                      ? "#a5a5a5"
+                      : "linear-gradient(45deg, #673ab7, #512da8)",
+                    color: "#fff",
+                    padding: "12px 20px",
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    textTransform: "capitalize",
+                    boxShadow: loading
+                      ? "none"
+                      : "0 4px 10px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.15)",
+                    borderRadius: "8px",
+                    transition: "all 0.3s ease",
+                    cursor: loading ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {loading ? (
+                    <span
                       style={{
-                        border: isOptimal
-                          ? "2px solid #4CAF50"
-                          : "1px solid #e0e0e0",
-                        marginBottom: "10px",
-                        borderRadius: "8px",
-                        backgroundColor: isOptimal ? "#f1f8e9" : "#ffffff",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
                       }}
                     >
-                      <ListItemIcon>
-                        {isBlocked ? (
-                          <ErrorIcon style={{ color: "#f44336" }} />
-                        ) : isOptimal ? (
-                          <CheckCircleIcon style={{ color: "#4CAF50" }} />
-                        ) : (
-                          <DirectionsIcon style={{ color: "#9e9e9e" }} />
-                        )}
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={`Route ${index + 1} ${
-                          isOptimal ? "(Optimal)" : ""
-                        }`}
-                        secondary={`Distance: ${detail.distance}, Duration: ${
-                          detail.duration
-                        }, Traffic Speed: ${
-                          detail.trafficSpeed
-                        } km/h, Traffic Volume: ${detail.trafficVolume}, ETA: ${
-                          detail.estimatedArrivalTime
-                        }
-                  ${isBlocked ? " (Blocked)" : ""}`}
-                        style={{ color: isBlocked ? "#f44336" : "inherit" }}
-                      />
-                    </ListItem>
-                  );
-                })}
-              </List>
-            </Paper>
-          )}
+                      <CircularProgress size={20} style={{ color: "#fff" }} />{" "}
+                      Calculating Routes...
+                    </span>
+                  ) : (
+                    "Fetch Optimal Routes"
+                  )}
+                </Button>
+              </Grid>
+            </Grid>
 
-          {/* {weatherInfo && (
-        <Paper style={{ padding: "10px", marginTop: "20px" }}>
-          <Typography variant="h6">Weather Information:</Typography>
-          <Typography>
-            {startPointAddress}: {weatherInfo.start.weather[0].description}
-          </Typography>
-          <Typography>
-            {endPointAddress}: {weatherInfo.end.weather[0].description}
-          </Typography>
-        </Paper>
-      )} */}
-          {weatherInfo && (
-            <Paper
+            {routeDetails.length > 0 && (
+              <Paper style={{ padding: "10px", marginTop: "20px" }}>
+                <Typography variant="h6">Route Details🛣️🛣️:</Typography>
+
+                <List>
+                  {routeDetails.map((detail, index) => {
+                    const isBlocked = checkRouteBlockedNew(
+                      detail.routedata.overview_path
+                    );
+                    const isOptimal = detail?.routeIndex === optimalRouteIndex;
+
+                    return (
+                      <ListItem
+                        key={detail?.routeIndex}
+                        button
+                        selected={isOptimal}
+                        onClick={() => {
+                          if (isBlocked) {
+                            setAlertOpen(true);
+                          } else {
+                            console.log("selectedindex", detail?.routeIndex);
+                            handleRouteSelect(detail?.routeIndex);
+                          }
+                        }}
+                        style={{
+                          border: isOptimal
+                            ? "2px solid #4CAF50"
+                            : "1px solid #e0e0e0",
+                          marginBottom: "10px",
+                          borderRadius: "8px",
+                          backgroundColor: isOptimal ? "#f1f8e9" : "#ffffff",
+                        }}
+                      >
+                        <ListItemIcon>
+                          {isBlocked ? (
+                            <ErrorIcon style={{ color: "#f44336" }} />
+                          ) : isOptimal ? (
+                            <CheckCircleIcon style={{ color: "#4CAF50" }} />
+                          ) : (
+                            <DirectionsIcon style={{ color: "#9e9e9e" }} />
+                          )}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={`Route ${index + 1} ${
+                            isOptimal ? "(Optimal)" : ""
+                          }`}
+                          secondary={`Distance: ${detail.distance}, Duration: ${
+                            detail.duration
+                          }, Traffic Speed: ${
+                            detail.trafficSpeed
+                          } km/h, Traffic Volume: ${
+                            detail.trafficVolume
+                          }, ETA: ${detail.estimatedArrivalTime}
+                  ${isBlocked ? " (Blocked)" : ""}`}
+                          style={{ color: isBlocked ? "#f44336" : "inherit" }}
+                        />
+                      </ListItem>
+                    );
+                  })}
+                </List>
+              </Paper>
+            )}
+
+            {weatherInfo && (
+              <Paper
+                style={{
+                  padding: "20px",
+                  marginTop: "20px",
+                  backgroundColor: "#f5f5f5",
+                  borderRadius: "10px",
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                }}
+              >
+                <Typography
+                  variant="h5"
+                  style={{
+                    marginBottom: "15px",
+                    fontWeight: "bold",
+                    color: "#3f51b5",
+                    textAlign: "center",
+                  }}
+                >
+                  Weather Information☀️⛄
+                </Typography>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: "15px",
+                  }}
+                >
+                  {/* Start Point */}
+                  <div
+                    style={{
+                      flex: "1 1 45%",
+                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                    }}
+                  >
+                    {/* <Place style={{ fontSize: "40px", color: "#1976d2" }} /> */}
+                    {/* Start Icon */}
+                    <Typography
+                      variant="subtitle1"
+                      style={{ fontWeight: "bold" }}
+                    >
+                      {startPointAddress}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      style={{
+                        backgroundColor: "#e3f2fd",
+                        padding: "10px",
+                        borderRadius: "5px",
+                        marginTop: "5px",
+                      }}
+                    >
+                      {weatherInfo.start.weather[0].description}
+                    </Typography>
+                  </div>
+
+                  {/* End Point */}
+                  <div
+                    style={{
+                      flex: "1 1 45%",
+                      textAlign: "center",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                    }}
+                  >
+                    {/* <Flag style={{ fontSize: "40px", color: "#43a047" }} /> */}
+                    {/* End Icon */}
+                    <Typography
+                      variant="subtitle1"
+                      style={{ fontWeight: "bold" }}
+                    >
+                      {endPointAddress}
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      style={{
+                        backgroundColor: "#e8f5e9",
+                        padding: "10px",
+                        borderRadius: "5px",
+                        marginTop: "5px",
+                      }}
+                    >
+                      {weatherInfo.end.weather[0].description}
+                    </Typography>
+                  </div>
+                </div>
+              </Paper>
+            )}
+
+            <div
               style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "flex-start",
                 padding: "20px",
-                marginTop: "20px",
                 backgroundColor: "#f5f5f5",
                 borderRadius: "10px",
-                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                margin: "10px 0",
               }}
             >
-              <Typography
-                variant="h5"
+              <h2
                 style={{
-                  marginBottom: "15px",
+                  fontSize: "24px",
                   fontWeight: "bold",
-                  color: "#3f51b5",
-                  textAlign: "center",
+                  color: "#2c3e50",
+                  margin: "0 0 10px",
                 }}
               >
-                Weather Information
-              </Typography>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: "15px",
-                }}
-              >
-                {/* Start Point */}
-                <div
-                  style={{
-                    flex: "1 1 45%",
-                    textAlign: "center",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
-                  {/* <Place style={{ fontSize: "40px", color: "#1976d2" }} /> */}
-                  {/* Start Icon */}
-                  <Typography
-                    variant="subtitle1"
-                    style={{ fontWeight: "bold" }}
-                  >
-                    {startPointAddress}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    style={{
-                      backgroundColor: "#e3f2fd",
-                      padding: "10px",
-                      borderRadius: "5px",
-                      marginTop: "5px",
-                    }}
-                  >
-                    {weatherInfo.start.weather[0].description}
-                  </Typography>
-                </div>
-
-                {/* End Point */}
-                <div
-                  style={{
-                    flex: "1 1 45%",
-                    textAlign: "center",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                  }}
-                >
-                  {/* <Flag style={{ fontSize: "40px", color: "#43a047" }} /> */}
-                  {/* End Icon */}
-                  <Typography
-                    variant="subtitle1"
-                    style={{ fontWeight: "bold" }}
-                  >
-                    {endPointAddress}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    style={{
-                      backgroundColor: "#e8f5e9",
-                      padding: "10px",
-                      borderRadius: "5px",
-                      marginTop: "5px",
-                    }}
-                  >
-                    {weatherInfo.end.weather[0].description}
-                  </Typography>
-                </div>
-              </div>
-            </Paper>
-          )}
-
-          {/* {news.length > 0 && (
-            <Paper style={{ padding: "10px", marginTop: "20px" }}>
-              <Typography variant="h6">News Headlines:</Typography>
-              <ul>
-                {news.map((article, index) => (
-                  <li key={index}>
-                    <div
-                      style={{ fontSize: 12, fontWeight: "normal", padding: 5 }}
-                    >
-                      {article.name}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </Paper>
-          )} */}
-          <ul>
-            {news.map((article, index) => (
-              <li key={index}>
-                <div style={{ fontSize: 14, padding: "5px 0" }}>
-                  <strong>{article.name}</strong>
-                  <br />
-                  Sentiment Score: {article.sentimentScore}{" "}
-                  {article.sentimentScore > 0
-                    ? "(Positive)"
-                    : article.sentimentScore < 0
-                    ? "(Negative)"
-                    : "(Neutral)"}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Container>
-      </DashboardContainer>
-    </>
+                Recent Updates Near You📰📰
+              </h2>
+             
+            </div>
+            <ul>
+              {news.map((article, index) => (
+                <li key={index}>
+                  <div style={{ fontSize: 14, padding: "5px 0" }}>
+                    <strong>{article.name}</strong>
+                    <br />
+                    Sentiment Score: {article.sentimentScore}{" "}
+                    {article.sentimentScore > 0
+                      ? "(Positive)"
+                      : article.sentimentScore < 0
+                      ? "(Negative)"
+                      : "(Neutral)"}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </Container>
+        </DashboardContainer>
+      </>
     </ErrorBoundary>
   );
 };

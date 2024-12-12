@@ -565,9 +565,12 @@ const MapWithAdminControls = () => {
 
       <DashboardContainer>
         <Container>
-          <Typography variant="h4" textAlign="center" gutterBottom>
-            Manage Routes
-          </Typography>
+          <h1
+            className="gradient-text"
+            style={{ margin: 0, alignSelf: "center", textAlign: "center" }}
+          >
+            Manage Routes 👩🏻‍💻
+          </h1>
 
           <Grid container spacing={2}>
             <Grid item xs={12}>
@@ -590,7 +593,7 @@ const MapWithAdminControls = () => {
               </GoogleMap>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Button
+              {/* <Button
                 variant="contained"
                 color="primary"
                 fullWidth
@@ -598,6 +601,43 @@ const MapWithAdminControls = () => {
                 disabled={loading}
               >
                 {loading ? "Fetching Routes..." : "Show Routes"}
+              </Button> */}
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={fetchRoutes}
+                disabled={loading}
+                style={{
+                  background: loading
+                    ? "#a5a5a5"
+                    : "linear-gradient(45deg, #673ab7, #512da8)",
+                  color: "#fff",
+                  padding: "12px 20px",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  textTransform: "capitalize",
+                  boxShadow: loading
+                    ? "none"
+                    : "0 4px 10px rgba(0, 0, 0, 0.25), 0 1px 3px rgba(0, 0, 0, 0.15)",
+                  borderRadius: "8px",
+                  transition: "all 0.3s ease",
+                  cursor: loading ? "not-allowed" : "pointer",
+                }}
+              >
+                {loading ? (
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                    }}
+                  >
+                    <CircularProgress size={20} style={{ color: "#fff" }} />{" "}
+                    Fetching Routes...
+                  </span>
+                ) : (
+                  "Show Routes"
+                )}
               </Button>
             </Grid>
           </Grid>

@@ -26,6 +26,9 @@ import {
   Toolbar,
   Snackbar,
   ListItemIcon,
+  Card,
+  CardContent,
+  Chip,
 } from "@mui/material";
 import {
   getFirestore,
@@ -181,9 +184,24 @@ const RoutePlanner = () => {
   //   }
   // }, [blockedRoutes]);
   const [userData, setuserData] = useState();
+  const [predictedData, setPredictedData] = useState(null);
+
   const getUserData = () => {
     const userData = localStorage.getItem("user");
     return userData ? JSON.parse(userData) : null;
+  };
+
+  const getBadgeVariant = (category) => {
+    switch (category) {
+      case "Low":
+        return "success";
+      case "Medium":
+        return "warning";
+      case "High":
+        return "danger";
+      default:
+        return "secondary";
+    }
   };
 
   useEffect(() => {
@@ -504,7 +522,74 @@ const RoutePlanner = () => {
       }
     }
   };
+  useEffect(() => {
+    const fetchPredictions = async () => {
+      const trafficResponse = await axios.get(
+        `https://api.tomtom.com/traffic/services/4/flowSegmentData/relative0/10/json?point=${endPoint.lat},${endPoint.lng}&key=5QpZLwcTD1Gz8dJ0O7o1u9vGokfRF1Og`
+      );
+      const trafficDataw = trafficResponse.data.flowSegmentData;
 
+      // Generate a `currentTrafficData` array dynamically from the TomTom data
+      // Example: [currentSpeed, freeFlowSpeed, confidence] as mock data points
+      const currentTrafficData = [
+        trafficDataw.currentSpeed,
+        trafficDataw.freeFlowSpeed,
+        Math.round(trafficDataw.confidence * 100), // Convert confidence to percentage
+      ];
+      const response = await axios.post("http://localhost:5000/predict_lstm", {
+        region: selectedRegion?.name,
+        latitude: endPoint.lat,
+        longitude: endPoint.lng,
+        weatherData: JSON.stringify({
+          temperature: (weatherInfo.start.main.temp - 273.15).toFixed(2), // Convert Kelvin to Celsius
+          condition: weatherInfo.start.weather[0].description,
+        }),
+        trafficData: JSON.stringify({
+          speed: trafficResponse.data.flowSegmentData.currentSpeed,
+          freeFlowSpeed: trafficResponse.data.flowSegmentData.freeFlowSpeed,
+          congestionLevel: trafficResponse.data.flowSegmentData.confidence,
+        }),
+        news: news.map((item) => item.name),
+        currentTrafficData: currentTrafficData,
+      });
+
+      const trafficData = trafficResponse.data.flowSegmentData;
+      const adjustedPredictions = Object.entries(
+        response.data.predictions
+      ).reduce((acc, [interval, prediction]) => {
+        // Mock adjustment factor
+        const adjustmentFactor =
+          trafficData.currentSpeed / trafficData.freeFlowSpeed;
+
+        // Adjust the volume for more realism
+        const timeFactor = interval.includes("hours")
+          ? 1
+          : interval.includes("days")
+          ? 1.5
+          : 1;
+        const updatedVolume = Math.fround(
+          prediction.volume * adjustmentFactor * timeFactor
+        ).toFixed(2);
+
+        acc[interval] = {
+          ...prediction,
+          volume: updatedVolume, // Adjusted volume based on speed and interval
+        };
+
+        // Dynamically adjust category based on volume
+        if (updatedVolume > 120) acc[interval].category = "High";
+        else if (updatedVolume > 60) acc[interval].category = "Medium";
+        else acc[interval].category = "Low";
+
+        return acc;
+      }, {});
+      console.log(adjustedPredictions);
+      setPredictedData(adjustedPredictions);
+    };
+    if (selectedRegion && weather) {
+      fetchPredictions();
+    }
+  }, [selectedRegion, weather]);
   return (
     <ErrorBoundary>
       <>
@@ -976,7 +1061,6 @@ const RoutePlanner = () => {
               >
                 Recent Updates Near You📰📰
               </h2>
-             
             </div>
             <ul>
               {news.map((article, index) => (
@@ -994,6 +1078,67 @@ const RoutePlanner = () => {
                 </li>
               ))}
             </ul>
+            <Box sx={{ p: 3 }}>
+              {predictedData && (
+                <div>
+                  <Typography variant="h4" gutterBottom align="center">
+                    Traffic Predictions
+                  </Typography>
+                  <Grid container spacing={3}>
+                    {Object.entries(predictedData).map(
+                      ([interval, prediction]) => (
+                        <Grid item xs={12} sm={6} md={4} key={interval}>
+                          <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                            <CardContent>
+                              <Typography
+                                variant="h6"
+                                align="center"
+                                gutterBottom
+                                sx={{
+                                  textTransform: "uppercase",
+                                  fontWeight: "bold",
+                                }}
+                              >
+                                {interval.replace("_", " ")} Prediction
+                              </Typography>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  mb: 2,
+                                }}
+                              >
+                                <Chip
+                                  label={prediction.category}
+                                  color={getBadgeVariant(prediction.category)}
+                                  sx={{
+                                    fontSize: "0.85rem",
+                                    fontWeight: "bold",
+                                  }}
+                                />
+                              </Box>
+                              <Typography variant="body1" gutterBottom>
+                                <strong>Volume:</strong> {prediction.volume}
+                                {" k"}
+                                vehicles/hour
+                              </Typography>
+                              <Typography variant="body2" gutterBottom>
+                                <strong>Description:</strong>{" "}
+                                {prediction.description}
+                              </Typography>
+                              <Typography variant="body2">
+                                <strong>Recommendation:</strong>{" "}
+                                {prediction.recommendation}
+                              </Typography>
+                            </CardContent>
+                          </Card>
+                        </Grid>
+                      )
+                    )}
+                  </Grid>
+                </div>
+              )}
+            </Box>
           </Container>
         </DashboardContainer>
       </>

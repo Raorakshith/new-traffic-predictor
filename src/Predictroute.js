@@ -47,7 +47,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ErrorIcon from "@mui/icons-material/Error";
 import DirectionsIcon from "@mui/icons-material/Directions";
 import Sentiment from "sentiment";
-
+import ErrorBoundary from './ErrorBoundary'
 const Alert = React.forwardRef(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
@@ -506,6 +506,7 @@ const RoutePlanner = () => {
   };
 
   return (
+    <ErrorBoundary>
     <>
       <AppBar position="static" sx={{ backgroundColor: "#334455" }}>
         <Toolbar>
@@ -891,6 +892,7 @@ const RoutePlanner = () => {
         </Container>
       </DashboardContainer>
     </>
+    </ErrorBoundary>
   );
 };
 

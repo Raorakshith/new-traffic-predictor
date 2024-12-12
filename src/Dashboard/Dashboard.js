@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import "./Dashboard.css";
@@ -46,6 +46,39 @@ import {
   Spinner,
   Badge,
 } from "react-bootstrap";
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
+import { Carousel } from "react-responsive-carousel";
+import MobileStepper from "@material-ui/core/MobileStepper";
+import KeyboardArrowRight from "@material-ui/icons/KeyboardArrowRight";
+import KeyboardArrowLeft from "@material-ui/icons/KeyboardArrowLeft";
+import ErrorBoundary from "../ErrorBoundary";
+import aibot from "../components/aijson.json";
+import Lottie from "lottie-react";
+import Typist from "react-typist";
+import "react-typist/dist/Typist.css";
+import TypingEffect from "../components/TextTyping";
+import InfoCard from "../components/InfoCard";
+
+const MyCollection = [
+  {
+    label: "First Picture",
+    imgPath:
+      "https://media.geeksforgeeks.org/wp-content/uploads/20210208000010/1.png",
+  },
+  {
+    label: "Second Picture",
+    imgPath:
+      "https://media.geeksforgeeks.org/wp-content/uploads/20210208000009/2.png",
+  },
+  {
+    label: "Third Picture",
+    imgPath:
+      "https://media.geeksforgeeks.org/wp-content/uploads/20210208000008/3.png",
+  },
+];
+
+const paragraph =
+  "       Our Traffic Prediction System leverages historical traffic data to predict future traffic trends and provide optimal routes for better travel planning. By analyzing patterns, it forecasts traffic conditions for the next 7 days, ensuring efficiency, reduced congestion, and enhanced user experience.";
 const DrawerContent = styled(Box)({
   width: 250,
   padding: "1rem",
@@ -131,6 +164,12 @@ const Dashboard = () => {
   });
 
   const [userData, setuserData] = useState();
+  const memoizedText = useMemo(() => paragraph, [paragraph]);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    setShouldRender(true); // Trigger only once when the component mounts.
+  }, []);
   const getUserData = () => {
     const userData = localStorage.getItem("user");
     return userData ? JSON.parse(userData) : null;
@@ -243,6 +282,7 @@ const Dashboard = () => {
           roadClosure: trafficData.roadClosure,
           confidence: trafficData.confidence,
         });
+        setShouldRender(true);
       } catch (error) {
         console.error("Error fetching traffic stats:", error);
       }
@@ -261,13 +301,13 @@ const Dashboard = () => {
       );
       const trafficDataw = trafficResponse.data.flowSegmentData;
 
-    // Generate a `currentTrafficData` array dynamically from the TomTom data
-    // Example: [currentSpeed, freeFlowSpeed, confidence] as mock data points
-    const currentTrafficData = [
-      trafficDataw.currentSpeed,
-      trafficDataw.freeFlowSpeed,
-      Math.round(trafficDataw.confidence * 100), // Convert confidence to percentage
-    ];
+      // Generate a `currentTrafficData` array dynamically from the TomTom data
+      // Example: [currentSpeed, freeFlowSpeed, confidence] as mock data points
+      const currentTrafficData = [
+        trafficDataw.currentSpeed,
+        trafficDataw.freeFlowSpeed,
+        Math.round(trafficDataw.confidence * 100), // Convert confidence to percentage
+      ];
       const response = await axios.post("http://localhost:5000/predict_lstm", {
         region: selectedRegion?.name,
         latitude: selectedRegion?.latitude,
@@ -303,33 +343,35 @@ const Dashboard = () => {
       //   };
       //   return acc;
       // });
-      const adjustedPredictions = Object.entries(response.data.predictions).reduce(
-        (acc, [interval, prediction]) => {
-          // Mock adjustment factor
-          const adjustmentFactor =
+      const adjustedPredictions = Object.entries(
+        response.data.predictions
+      ).reduce((acc, [interval, prediction]) => {
+        // Mock adjustment factor
+        const adjustmentFactor =
           trafficData.currentSpeed / trafficData.freeFlowSpeed;
-    
-          // Adjust the volume for more realism
-          const timeFactor =
-            interval.includes("hours") ? 1 : interval.includes("days") ? 1.5 : 1;
-          const updatedVolume = Math.fround(
-            prediction.volume * adjustmentFactor * timeFactor
-          ).toFixed(2);
-    
-          acc[interval] = {
-            ...prediction,
-            volume: updatedVolume, // Adjusted volume based on speed and interval
-          };
-    
-          // Dynamically adjust category based on volume
-          if (updatedVolume > 120) acc[interval].category = "High";
-          else if (updatedVolume > 60) acc[interval].category = "Medium";
-          else acc[interval].category = "Low";
-    
-          return acc;
-        },
-        {}
-      );
+
+        // Adjust the volume for more realism
+        const timeFactor = interval.includes("hours")
+          ? 1
+          : interval.includes("days")
+          ? 1.5
+          : 1;
+        const updatedVolume = Math.fround(
+          prediction.volume * adjustmentFactor * timeFactor
+        ).toFixed(2);
+
+        acc[interval] = {
+          ...prediction,
+          volume: updatedVolume, // Adjusted volume based on speed and interval
+        };
+
+        // Dynamically adjust category based on volume
+        if (updatedVolume > 120) acc[interval].category = "High";
+        else if (updatedVolume > 60) acc[interval].category = "Medium";
+        else acc[interval].category = "Low";
+
+        return acc;
+      }, {});
       console.log(adjustedPredictions);
       setPredictedData(adjustedPredictions);
     };
@@ -404,144 +446,197 @@ const Dashboard = () => {
   };
 
   return (
-    <>
-      <AppBar position="static" sx={{ backgroundColor: "#334455" }}>
-        <Toolbar>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            onClick={() => setDrawerOpen(true)}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            Dashboard
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-      >
-        <DrawerContent>
-          <Typography variant="h6">Navigation</Typography>
-          <List>
-            <ListItem button>
-              <ListItemText
-                primary="Dashboard"
-                onClick={() => {
-                  navigate("/dashboard");
-                }}
-              />
-            </ListItem>
-            <ListItem button>
-              <ListItemText
-                primary="Route Plan"
-                onClick={() => {
-                  navigate("/route-plan");
-                }}
-              />
-            </ListItem>
-            {userData?.userType == "Admin" ? (
-              <ListItem button>
-                <ListItemText
-                  primary="Block Routes"
-                  onClick={() => {
-                    navigate("/block-map");
-                  }}
-                />
-              </ListItem>
-            ) : (
-              <div />
-            )}
-            {userData?.userType == "Admin" ? (
-              <ListItem button>
-                <ListItemText
-                  primary="Metrics"
-                  onClick={() => {
-                    navigate("/metrics");
-                  }}
-                />
-              </ListItem>
-            ) : (
-              <div />
-            )}
-          </List>
-        </DrawerContent>
-      </Drawer>
-
-      <DashboardContainer>
-        <HeroSection>
-          <HeroContent>
-            <Typography variant="h4">Welcome to TrafficX!</Typography>
-            <Typography style={{ padding: 5 }}>
-              Stay updated with live traffic, weather conditions,get shortest
-              routes, many more and news.
+    <ErrorBoundary>
+      <>
+        <AppBar position="static" sx={{ backgroundColor: "#334455" }}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              onClick={() => setDrawerOpen(true)}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ flexGrow: 1 }}>
+              Dashboard
             </Typography>
-            <Button variant="contained" color="secondary" size="large">
-              Explore Now
-            </Button>
-          </HeroContent>
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSj-rBuiUH47r__O_3a3BkpdsX3lOTs7vdaHg&s"
-            alt="Dashboard Hero"
-            style={{ borderRadius: "12px", maxWidth: "50%" }}
-          />
-        </HeroSection>
+          </Toolbar>
+        </AppBar>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={4}>
-            <StyledCard>
-              <WbSunnyIcon fontSize="large" color="warning" />
-              <Typography variant="h6">Weather</Typography>
-              <Typography>
-                {weather
-                  ? `${weather.main.temp}°C - ${weather.weather[0].description}`
-                  : "Loading..."}
-              </Typography>
-            </StyledCard>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <StyledCard>
-              <TrafficIcon fontSize="large" color="success" />
-              <Typography variant="h6">Traffic</Typography>
-              <Typography>
-                {traffic
-                  ? `${traffic.flowSegmentData.currentSpeed} km/h`
-                  : "Loading..."}
-              </Typography>
-            </StyledCard>
-          </Grid>
-          <Grid item xs={12} sm={4}>
-            <StyledCard>
-              <LocationOnIcon fontSize="large" color="info" />
-              <Typography variant="h6">Location</Typography>
-              <Typography>
-                {location
-                  ? `${location.latitude.toFixed(
-                      2
-                    )}, ${location.longitude.toFixed(2)}`
-                  : "Loading..."}
-              </Typography>
-              <Form.Group className="mb-3">
-                <Form.Label style={{ marginRight: 8 }}>Region</Form.Label>
-                <Form.Select onChange={handleRegionChange} required>
-                  <option value="">Select a region</option>
-                  {regions.map((region) => (
-                    <option key={region.name} value={region.name}>
-                      {region.name}
-                    </option>
-                  ))}
-                </Form.Select>
-              </Form.Group>
-            </StyledCard>
-          </Grid>
-        </Grid>
+        <Drawer
+          anchor="left"
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+        >
+          <DrawerContent>
+            <Typography variant="h6">Navigation</Typography>
+            <List>
+              <ListItem button>
+                <ListItemText
+                  primary="Dashboard"
+                  onClick={() => {
+                    navigate("/dashboard");
+                  }}
+                />
+              </ListItem>
+              <ListItem button>
+                <ListItemText
+                  primary="Route Plan"
+                  onClick={() => {
+                    navigate("/route-plan");
+                  }}
+                />
+              </ListItem>
+              {userData?.userType == "Admin" ? (
+                <ListItem button>
+                  <ListItemText
+                    primary="Block Routes"
+                    onClick={() => {
+                      navigate("/block-map");
+                    }}
+                  />
+                </ListItem>
+              ) : (
+                <div />
+              )}
+              {userData?.userType == "Admin" ? (
+                <ListItem button>
+                  <ListItemText
+                    primary="Metrics"
+                    onClick={() => {
+                      navigate("/metrics");
+                    }}
+                  />
+                </ListItem>
+              ) : (
+                <div />
+              )}
+            </List>
+          </DrawerContent>
+        </Drawer>
 
-        {/* {location && (
+        <DashboardContainer>
+          <div
+            style={{
+              width: "100%",
+              maxHeight: "500px",
+              overflow: "hidden",
+              marginBottom: 20,
+            }}
+          >
+            <Carousel
+              showThumbs={false}
+              showArrows={true}
+              autoPlay
+              infiniteLoop
+              dynamicHeight={false}
+              showStatus={false}
+              interval={3000}
+            >
+              <div>
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTeyDJNQbuEATQ_ifsd4FsDbtv-VERlGCOkyQ&s"
+                  alt="Slide 1"
+                  style={{ objectFit: "cover", height: "500px", width: "100%" }}
+                />
+              </div>
+              <div>
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZ4K0Nobh_mYQkJghY-ttK7EoHDFt8pPmvmg&s"
+                  alt="Slide 2"
+                  style={{ objectFit: "cover", height: "500px", width: "100%" }}
+                />
+              </div>
+              <div>
+                <img
+                  src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6NazUK01ok4xX4yP_HYsAggTZyWLU8xOw7g&s"
+                  alt="Slide 3"
+                  style={{ objectFit: "cover", height: "500px", width: "100%" }}
+                />
+              </div>
+            </Carousel>
+          </div>
+
+          {/* {shouldRender ? (
+            <div
+              style={{
+                margin: "20px auto",
+                textAlign: "center",
+                maxWidth: "800px",
+                fontFamily: "Arial, sans-serif",
+                fontSize: "18px",
+                lineHeight: "1.6",
+              }}
+            >
+              <TypingEffect text={memoizedText} speed={150} />
+            </div>
+          ) : (
+            <div />
+          )} */}
+          {/* <div
+            style={{
+              margin: "20px auto",
+              textAlign: "center",
+              maxWidth: "800px",
+              fontFamily: "Arial, sans-serif",
+              fontSize: "18px",
+              lineHeight: "1.6",
+            }}
+          >
+            <TypingEffect text={paragraph} speed={150} />
+          </div> */}
+          <InfoCard userData={userData} />
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={4}>
+              <StyledCard>
+                <WbSunnyIcon fontSize="large" color="warning" />
+                <Typography variant="h6">Weather</Typography>
+                <Typography>
+                  {weather
+                    ? `${weather.main.temp}°C - ${weather.weather[0].description}`
+                    : "Loading..."}
+                </Typography>
+              </StyledCard>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <StyledCard>
+                <TrafficIcon fontSize="large" color="success" />
+                <Typography variant="h6">Traffic</Typography>
+                <Typography>
+                  {traffic
+                    ? `${traffic.flowSegmentData.currentSpeed} km/h`
+                    : "Loading..."}
+                </Typography>
+              </StyledCard>
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <StyledCard>
+                <LocationOnIcon fontSize="large" color="info" />
+                <Typography variant="h6">Current Location</Typography>
+                <Typography>
+                  {location
+                    ? `${location.latitude.toFixed(
+                        2
+                      )}, ${location.longitude.toFixed(2)}`
+                    : "Loading..."}
+                </Typography>
+                <Form.Group className="mb-3">
+                  <Form.Label style={{ marginRight: 8 }}>Region</Form.Label>
+                  <Form.Select onChange={handleRegionChange} required>
+                    <option value="">Select a region</option>
+                    {regions.map((region) => (
+                      <option key={region.name} value={region.name}>
+                        {region.name}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+              </StyledCard>
+            </Grid>
+          </Grid>
+
+          {/* {location && (
           <Box sx={{ marginTop: "2rem", width: "100%", height: "400px" }}>
             <MapContainer
               center={[location.latitude, location.longitude]}
@@ -558,104 +653,147 @@ const Dashboard = () => {
             </MapContainer>
           </Box>
         )} */}
-        {location && (
-          <Box sx={{ marginTop: "2rem", width: "100%", height: "400px" }}>
-            <MapContainer
-              center={[location.latitude, location.longitude]}
-              zoom={13}
-              style={{ height: "100%", borderRadius: "12px" }}
-            >
-              <ChangeMapView center={[location.latitude, location.longitude]} />
-              <TileLayer
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                attribution="&copy; OpenStreetMap contributors"
-              />
-              <HeatmapLayer data={heatmapData} />
-              <Marker position={[location.latitude, location.longitude]}>
-                <Popup>Your current location</Popup>
-              </Marker>
-            </MapContainer>
-          </Box>
-        )}
-        <TrafficStatsCard trafficData={trafficData} />
-        <NewsList>
-          <Typography variant="h5" sx={{ marginBottom: "1rem" }}>
-            Latest News
-          </Typography>
-          {news.map((article, index) => (
-            <Card
-              key={index}
-              sx={{
-                marginBottom: "1rem",
-                padding: "1rem",
-                backgroundColor: "#fff",
-                borderRadius: "8px",
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: 'flex-start',
+              padding: "20px",
+              backgroundColor: "#f5f5f5",
+              borderRadius: "10px",
+              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+              margin: "10px 0",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "24px",
+                fontWeight: "bold",
+                color: "#2c3e50",
+                margin: "0 0 10px",
               }}
             >
-              <Typography variant="h6">{article.name}</Typography>
-              <Typography>{article.description}</Typography>
-              <Button href={article.url} target="_blank">
-                Read More
-              </Button>
-            </Card>
-          ))}
-        </NewsList>
-        <Box sx={{ p: 3 }}>
-          {predictedData && (
-            <div>
-              <Typography variant="h4" gutterBottom align="center">
-                Traffic Predictions
-              </Typography>
-              <Grid container spacing={3}>
-                {Object.entries(predictedData).map(([interval, prediction]) => (
-                  <Grid item xs={12} sm={6} md={4} key={interval}>
-                    <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
-                      <CardContent>
-                        <Typography
-                          variant="h6"
-                          align="center"
-                          gutterBottom
-                          sx={{
-                            textTransform: "uppercase",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          {interval.replace("_", " ")} Prediction
-                        </Typography>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            justifyContent: "center",
-                            mb: 2,
-                          }}
-                        >
-                          <Chip
-                            label={prediction.category}
-                            color={getBadgeVariant(prediction.category)}
-                            sx={{ fontSize: "0.85rem", fontWeight: "bold" }}
-                          />
-                        </Box>
-                        <Typography variant="body1" gutterBottom>
-                          <strong>Volume:</strong> {prediction.volume}{" k"}
-                          vehicles/hour
-                        </Typography>
-                        <Typography variant="body2" gutterBottom>
-                          <strong>Description:</strong> {prediction.description}
-                        </Typography>
-                        <Typography variant="body2">
-                          <strong>Recommendation:</strong>{" "}
-                          {prediction.recommendation}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-            </div>
+              Live Traffic Density Map
+            </h2>
+            <p
+              style={{
+                fontSize: "16px",
+                color: "#7f8c8d",
+                textAlign: "center",
+                margin: "0",
+              }}
+            >
+              Navigate through {selectedRegion?.name?selectedRegion?.name:""}’s real-time traffic insights to plan
+              your journey efficiently.
+            </p>
+          </div>
+
+          {location && (
+            <Box sx={{ marginTop: "2rem", width: "100%", height: "400px" }}>
+              <MapContainer
+                center={[location.latitude, location.longitude]}
+                zoom={13}
+                style={{ height: "100%", borderRadius: "12px" }}
+              >
+                <ChangeMapView
+                  center={[location.latitude, location.longitude]}
+                />
+                <TileLayer
+                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                  attribution="&copy; OpenStreetMap contributors"
+                />
+                <HeatmapLayer data={heatmapData} />
+                <Marker position={[location.latitude, location.longitude]}>
+                  <Popup>Your current location</Popup>
+                </Marker>
+              </MapContainer>
+            </Box>
           )}
-        </Box>
-      </DashboardContainer>
-    </>
+          <TrafficStatsCard trafficData={trafficData} />
+          <NewsList>
+            <Typography variant="h5" sx={{ marginBottom: "1rem" }}>
+              Latest News
+            </Typography>
+            {news.map((article, index) => (
+              <Card
+                key={index}
+                sx={{
+                  marginBottom: "1rem",
+                  padding: "1rem",
+                  backgroundColor: "#fff",
+                  borderRadius: "8px",
+                }}
+              >
+                <Typography variant="h6">{article.name}</Typography>
+                <Typography>{article.description}</Typography>
+                <Button href={article.url} target="_blank">
+                  Read More
+                </Button>
+              </Card>
+            ))}
+          </NewsList>
+          <Box sx={{ p: 3 }}>
+            {predictedData && (
+              <div>
+                <Typography variant="h4" gutterBottom align="center">
+                  Traffic Predictions
+                </Typography>
+                <Grid container spacing={3}>
+                  {Object.entries(predictedData).map(
+                    ([interval, prediction]) => (
+                      <Grid item xs={12} sm={6} md={4} key={interval}>
+                        <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+                          <CardContent>
+                            <Typography
+                              variant="h6"
+                              align="center"
+                              gutterBottom
+                              sx={{
+                                textTransform: "uppercase",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              {interval.replace("_", " ")} Prediction
+                            </Typography>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                justifyContent: "center",
+                                mb: 2,
+                              }}
+                            >
+                              <Chip
+                                label={prediction.category}
+                                color={getBadgeVariant(prediction.category)}
+                                sx={{ fontSize: "0.85rem", fontWeight: "bold" }}
+                              />
+                            </Box>
+                            <Typography variant="body1" gutterBottom>
+                              <strong>Volume:</strong> {prediction.volume}
+                              {" k"}
+                              vehicles/hour
+                            </Typography>
+                            <Typography variant="body2" gutterBottom>
+                              <strong>Description:</strong>{" "}
+                              {prediction.description}
+                            </Typography>
+                            <Typography variant="body2">
+                              <strong>Recommendation:</strong>{" "}
+                              {prediction.recommendation}
+                            </Typography>
+                          </CardContent>
+                        </Card>
+                      </Grid>
+                    )
+                  )}
+                </Grid>
+              </div>
+            )}
+          </Box>
+        </DashboardContainer>
+      </>
+    </ErrorBoundary>
   );
 };
 

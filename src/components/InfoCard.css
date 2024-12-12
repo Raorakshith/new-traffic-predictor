@@ -4,8 +4,7 @@
     justify-content: space-between;
     height: 60vh;
     padding: 40px;
-    background: linear-gradient(135deg, #fff, #fff);
-    box-sizing: border-box;
+    background-image:linear-gradient(45deg, rgba(106,17,203,0.2),rgba(37,117,252,0.2));    box-sizing: border-box;
     border-radius: 8px;
     margin-bottom: 15px;
   }

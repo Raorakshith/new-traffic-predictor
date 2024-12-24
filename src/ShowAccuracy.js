@@ -48,8 +48,8 @@ ChartJS.register(
 function MetricsPage() {
   const metrics = {
     accuracy: 0.945,
-    precision: 0.93,
-    recall: 0.91,
+    precision: 0.973,
+    recall: 1.0,
     f1Score: 0.9,
   };
   const DrawerContent = styled(Box)({

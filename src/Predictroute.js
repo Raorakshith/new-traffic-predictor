@@ -303,36 +303,154 @@ const RoutePlanner = () => {
       console.error("Error fetching blocked routes: ", error);
     }
   };
-  const fetchRoutes = async () => {
+  // const fetchRoutes = async () => {
+  //   if (!startPoint || !endPoint) {
+  //     alert("Please select both start and end points!");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+
+  //   const directionsService = new google.maps.DirectionsService();
+
+  //   directionsService.route(
+  //     {
+  //       origin: startPoint,
+  //       destination: endPoint,
+  //       travelMode: google.maps.TravelMode.DRIVING,
+  //       provideRouteAlternatives: true,
+  //     },
+  //     (result, status) => {
+  //       if (status === "OK") {
+  //         setDirections(result);
+  //         determineBestRoute(result.routes);
+  //         fetchRouteTrafficDetails(result.routes);
+  //         console.log("routes generated", result);
+  //       } else {
+  //         alert("Error fetching directions: " + status);
+  //       }
+  //       setLoading(false);
+  //       setShow(true);
+  //     }
+  //   );
+  // };
+  const fetchMultipleRoutes = async () => {
     if (!startPoint || !endPoint) {
       alert("Please select both start and end points!");
       return;
     }
-
+  
     setLoading(true);
-
     const directionsService = new google.maps.DirectionsService();
-
-    directionsService.route(
-      {
-        origin: startPoint,
-        destination: endPoint,
-        travelMode: google.maps.TravelMode.DRIVING,
-        provideRouteAlternatives: true,
-      },
-      (result, status) => {
-        if (status === "OK") {
-          setDirections(result);
-          determineBestRoute(result.routes);
-          fetchRouteTrafficDetails(result.routes);
-          console.log("routes generated", result);
-        } else {
-          alert("Error fetching directions: " + status);
-        }
-        setLoading(false);
-        setShow(true);
+    let allRoutes = [];
+    
+    // Array of waypoint combinations to force different routes
+    const waypointCombinations = [
+      [], // Direct route
+      [{ location: { lat: startPoint.lat + 0.01, lng: startPoint.lng + 0.01 }, stopover: false }],
+      [{ location: { lat: startPoint.lat - 0.01, lng: startPoint.lng - 0.01 }, stopover: false }],
+      [{ location: { lat: endPoint.lat + 0.01, lng: endPoint.lng + 0.01 }, stopover: false }],
+      [{ location: { lat: endPoint.lat - 0.01, lng: endPoint.lng - 0.01 }, stopover: false }],
+      // Add more combinations as needed
+    ];
+  
+    try {
+      const routePromises = waypointCombinations.map(waypoints => {
+        return new Promise((resolve, reject) => {
+          directionsService.route(
+            {
+              origin: startPoint,
+              destination: endPoint,
+              travelMode: google.maps.TravelMode.DRIVING,
+              provideRouteAlternatives: true,
+              optimizeWaypoints: true,
+              waypoints: waypoints,
+              avoidHighways: false, // Try different combinations
+              avoidTolls: false,
+            },
+            (result, status) => {
+              if (status === "OK") {
+                resolve(result.routes);
+              } else {
+                resolve([]); // Resolve with empty array on error to continue execution
+              }
+            }
+          );
+        });
+      });
+  
+      const results = await Promise.all(routePromises);
+      
+      // Flatten and filter unique routes
+      results.forEach(routes => {
+        routes.forEach(route => {
+          // Check if route is unique based on some criteria (distance, duration, path)
+          const isUnique = !allRoutes.some(existingRoute => 
+            isRouteSimilar(route, existingRoute)
+          );
+          
+          if (isUnique) {
+            allRoutes.push(route);
+          }
+        });
+      });
+  
+      // Sort routes by total distance or duration
+      allRoutes.sort((a, b) => 
+        a.legs[0].distance.value - b.legs[0].distance.value
+      );
+  
+      if (allRoutes.length > 0) {
+        setDirections({ routes: allRoutes });
+        determineBestRoute(allRoutes);
+        fetchRouteTrafficDetails(allRoutes);
+        console.log("Generated routes:", allRoutes.length);
+      } else {
+        alert("No routes found!");
       }
+    } catch (error) {
+      console.error("Error fetching routes:", error);
+      alert("Error fetching routes");
+    } finally {
+      setLoading(false);
+      setShow(true);
+    }
+  };
+  
+  // Helper function to determine if routes are similar
+  const isRouteSimilar = (route1, route2, threshold = 0.8) => {
+    const path1 = route1.overview_path;
+    const path2 = route2.overview_path;
+    
+    // Compare route distance and duration
+    const distanceDiff = Math.abs(
+      route1.legs[0].distance.value - route2.legs[0].distance.value
     );
+    const durationDiff = Math.abs(
+      route1.legs[0].duration.value - route2.legs[0].duration.value
+    );
+    
+    // If routes are significantly different in distance or duration, consider them unique
+    if (distanceDiff > 1000 || durationDiff > 300) {
+      return false;
+    }
+    
+    // Compare some points along the path to determine similarity
+    let similarPoints = 0;
+    const pointsToCheck = Math.min(path1.length, path2.length, 10);
+    
+    for (let i = 0; i < pointsToCheck; i++) {
+      const index = Math.floor((i / pointsToCheck) * path1.length);
+      const point1 = path1[index];
+      const point2 = path2[index];
+      
+      const distance = google.maps.geometry.spherical.computeDistanceBetween(point1, point2);
+      if (distance < 500) { // 500 meters threshold
+        similarPoints++;
+      }
+    }
+    
+    return (similarPoints / pointsToCheck) > threshold;
   };
 
   const determineBestRoute = (routes) => {
@@ -817,7 +935,7 @@ const RoutePlanner = () => {
                       key={index}
                       path={route}
                       options={{
-                        strokeColor: "black",
+                        strokeColor: "red",
                         strokeOpacity: 0.8,
                         strokeWeight: 4,
                       }}
@@ -854,7 +972,7 @@ const RoutePlanner = () => {
                 <Button
                   variant="contained"
                   fullWidth
-                  onClick={fetchRoutes}
+                  onClick={fetchMultipleRoutes}
                   disabled={loading}
                   style={{
                     background: loading

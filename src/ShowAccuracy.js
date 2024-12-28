@@ -331,6 +331,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function MetricsPage() {
+<<<<<<< HEAD
   const [metrics, setMetrics] = useState({
     accuracy: 0,
     precision: 0,
@@ -340,6 +341,14 @@ function MetricsPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
+=======
+  const metrics = {
+    accuracy: 0.945,
+    precision: 0.973,
+    recall: 1.0,
+    f1Score: 0.9,
+  };
+>>>>>>> 69be80da6ae4d3f8b0f94be9f38cde8feee3fa59
   const DrawerContent = styled(Box)({
     width: 250,
     padding: "1rem",

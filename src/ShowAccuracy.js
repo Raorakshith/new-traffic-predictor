@@ -327,6 +327,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { styled } from "@mui/system";
 import MenuIcon from "@mui/icons-material/Menu";
+import TrafficVisualizations from "./components/TrafficVisualizations";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -387,9 +388,15 @@ function MetricsPage() {
       console.error("Error fetching metrics:", error);
     }
   };
+const [userData, setuserData] = useState();
 
+  const getUserData = () => {
+    const userData = localStorage.getItem("user");
+    return userData ? JSON.parse(userData) : null;
+  };
   useEffect(() => {
     fetchMetrics();
+    setuserData(getUserData());
   }, []);
 
   const chartData = {
@@ -428,44 +435,121 @@ function MetricsPage() {
         </Toolbar>
       </AppBar>
 
-      <Drawer
-        anchor="left"
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        style={{
-          width: "300px",
-          backgroundColor: "#2c3e50",
-          color: "#ecf0f1",
-          padding: "10px",
-        }}
-      >
-        <DrawerContent>
-          <Typography
-            variant="h6"
-            style={{
-              color: "#5b5b5b",
-              fontWeight: "bold",
-              marginBottom: "20px",
-              textAlign: "center",
-              borderBottom: "1px solid #7f8c8d",
-              paddingBottom: "10px",
-            }}
-          >
-            TraffiX
-          </Typography>
-          <List>
-            <ListItem button onClick={() => navigate("/dashboard")}>
-              <ListItemText primary="Dashboard" />
-            </ListItem>
-            <ListItem button onClick={() => navigate("/route-plan")}>
-              <ListItemText primary="Route Plan" />
-            </ListItem>
-            <ListItem button onClick={() => navigate("/metrics")}>
-              <ListItemText primary="Metrics" />
-            </ListItem>
-          </List>
-        </DrawerContent>
-      </Drawer>
+       <Drawer
+                anchor="left"
+                open={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+                style={{
+                  width: "300px",
+                  backgroundColor: "#2c3e50", // Dark background for a modern look
+                  color: "#ecf0f1", // Light text for contrast
+                  padding: "10px",
+                }}
+              >
+                <DrawerContent
+                  style={{
+                    padding: "20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                  }}
+                >
+                  <Typography
+                    variant="h6"
+                    style={{
+                      color: "#5b5b5b",
+                      fontWeight: "bold",
+                      marginBottom: "20px",
+                      textAlign: "center",
+                      borderBottom: "1px solid #7f8c8d",
+                      paddingBottom: "10px",
+                    }}
+                  >
+                    TraffiX
+                  </Typography>
+                  <List style={{ flexGrow: 1 }}>
+                    <ListItem button style={{ marginBottom: "10px" }}>
+                      <ListItemText
+                        primary="Dashboard"
+                        primaryTypographyProps={{
+                          style: {
+                            fontSize: "16px",
+                            fontWeight: "500",
+                            color: "#5b5b5b",
+                          },
+                        }}
+                        onClick={() => {
+                          navigate("/dashboard");
+                        }}
+                      />
+                    </ListItem>
+                    <ListItem button style={{ marginBottom: "10px" }}>
+                      <ListItemText
+                        primary="Route Plan"
+                        primaryTypographyProps={{
+                          style: {
+                            fontSize: "16px",
+                            fontWeight: "500",
+                            color: "#5b5b5b",
+                          },
+                        }}
+                        onClick={() => {
+                          navigate("/route-plan");
+                        }}
+                      />
+                    </ListItem>
+                    {userData?.userType === "Admin" && (
+                      <>
+                        <ListItem button style={{ marginBottom: "10px" }}>
+                          <ListItemText
+                            primary="Block Routes"
+                            primaryTypographyProps={{
+                              style: {
+                                fontSize: "16px",
+                                fontWeight: "500",
+                                color: "#5b5b5b",
+                              },
+                            }}
+                            onClick={() => {
+                              navigate("/block-map");
+                            }}
+                          />
+                        </ListItem>
+                        <ListItem button style={{ marginBottom: "10px" }}>
+                          <ListItemText
+                            primary="Metrics"
+                            primaryTypographyProps={{
+                              style: {
+                                fontSize: "16px",
+                                fontWeight: "500",
+                                color: "#5b5b5b",
+                              },
+                            }}
+                            onClick={() => {
+                              navigate("/metrics");
+                            }}
+                          />
+                        </ListItem>
+                      </>
+                    )}
+                  </List>
+                  <div
+                    style={{
+                      textAlign: "center",
+                      borderTop: "1px solid #7f8c8d",
+                      padding: "10px 0",
+                      marginTop: "20px",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      style={{ color: "#bdc3c7", fontSize: "12px" }}
+                    >
+                      © 2024 Traffic Insights
+                    </Typography>
+                  </div>
+                </DrawerContent>
+              </Drawer>
 
       <Box sx={{ padding: 3 }}>
         <Typography variant="h4" gutterBottom>
@@ -523,6 +607,7 @@ function MetricsPage() {
             </Card>
           </Grid>
         </Grid>
+        <TrafficVisualizations/>
       </Box>
     </>
   );

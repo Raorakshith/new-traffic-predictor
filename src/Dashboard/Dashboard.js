@@ -240,7 +240,7 @@ const Dashboard = () => {
         `https://api.bing.microsoft.com/v7.0/news/search?q=traffic&count=10`,
         {
           headers: {
-            "Ocp-Apim-Subscription-Key": "a14994d42f804c0b974e2f65784cdfb9",
+            "Ocp-Apim-Subscription-Key": "dc54975ac1ad4cbc838f197f67cfedb2",
           },
         }
       );

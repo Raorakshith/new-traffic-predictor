@@ -525,7 +525,7 @@ const RoutePlanner = () => {
 
   const fetchWeatherAndNews = async (endPoint) => {
     const openWeatherApiKey = "4b3120747b9ef1f222316cf9cf47bd7a";
-    const bingNewsApiKey = "a14994d42f804c0b974e2f65784cdfb9";
+    const bingNewsApiKey = "dc54975ac1ad4cbc838f197f67cfedb2";
 
     try {
       const startPlaceName = await geocodeLatLng(
@@ -556,13 +556,13 @@ const RoutePlanner = () => {
 
       // Fetch news data for the selected region
       const newsResponseStart = await axios.get(
-        `https://api.bing.microsoft.com/v7.0/news/search?q=traffic news and road blockages in ${startPlaceName?.localityName}`,
+        `https://api.bing.microsoft.com/v7.0/news/search?q=traffic news and road blockages in ${startPlaceName?.localityName}&count=5`,
         {
           headers: { "Ocp-Apim-Subscription-Key": bingNewsApiKey },
         }
       );
       const newsResponseEnd = await axios.get(
-        `https://api.bing.microsoft.com/v7.0/news/search?q=traffic news and road blockages in ${endPlaceName?.localityName}`,
+        `https://api.bing.microsoft.com/v7.0/news/search?q=traffic news and road blockages in ${endPlaceName?.localityName}&count=5`,
         {
           headers: { "Ocp-Apim-Subscription-Key": bingNewsApiKey },
         }
@@ -935,7 +935,7 @@ const RoutePlanner = () => {
                       key={index}
                       path={route}
                       options={{
-                        strokeColor: "red",
+                        strokeColor: "#000",
                         strokeOpacity: 0.8,
                         strokeWeight: 4,
                       }}
